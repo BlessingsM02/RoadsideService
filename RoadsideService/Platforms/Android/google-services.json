@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "393079081812",
+    "firebase_url": "https://roadside-service-f65db-default-rtdb.firebaseio.com",
+    "project_id": "roadside-service-f65db",
+    "storage_bucket": "roadside-service-f65db.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:393079081812:android:8302e89a51f826e49e96c1",
+        "android_client_info": {
+          "package_name": "com.companyname.roadsideservice"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAWBat1LM1aRlSNeNZMKnSMFf58dsTOYF0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

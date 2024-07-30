@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="RoadsideService.Views.NewPage1"
+             Shell.FlyoutBehavior="Disabled"
+             xmlns:local="clr-namespace:RoadsideService.ViewModels"
+             Title="Register">
+    
+    <ContentPage.BindingContext>
+        <local:UserViewModel />
+    </ContentPage.BindingContext>
+
+    <VerticalStackLayout Spacing="20" Padding="20">
+        <Entry x:Name="nameEntry"
+               Placeholder="First Name"
+               Text="{Binding FirstName}" />
+        <Entry x:Name="surnameEntry"
+               Placeholder="Last Name"
+               Text="{Binding LastName}" />
+        <Entry x:Name="vehicleDescription"
+               Placeholder="white vitz"
+               Text="{Binding VehicleDescription}" />
+        <Entry x:Name="plateNumber"
+               Placeholder="ABC123"
+               Text="{Binding PlateNumber}" />
+        <Button x:Name="submitButton"
+                Text="Submit"
+                Command="{Binding SubmitCommand}" />
+    </VerticalStackLayout>
+</ContentPage>

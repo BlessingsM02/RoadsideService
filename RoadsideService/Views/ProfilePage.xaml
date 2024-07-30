@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="RoadsideService.Views.ProfilePage"
+             xmlns:local="clr-namespace:RoadsideService.ViewModels"
+             Shell.FlyoutBehavior="Disabled"
+             Title="ProfilePage">
+    <ContentPage.BindingContext>
+        <local:ProfileViewModel />
+    </ContentPage.BindingContext>
+
+    <VerticalStackLayout Spacing="20" Padding="20">
+        <Label Text="First Name:" />
+        <Label Text="{Binding FirstName}" FontSize="Large" />
+
+        <Label Text="Last Name:" />
+        <Label Text="{Binding LastName}" FontSize="Large" />
+
+        <Label Text="Mobile:" />
+        <Label Text="{Binding MobileNumber}" FontSize="Large" />
+
+        <Label Text="Vehicle Description:" />
+        <Label Text="{Binding VehicleDescription}" FontSize="Large" />
+
+        <Label Text="Plate Number:"/>
+        <Label Text="{Binding PlateNumber}" FontSize="Large" />
+
+        <Button Text="Reload Profile" Command="{Binding LoadUserProfileCommand}" />
+        <Button Text="Logout" Clicked="OnLogoutButtonClicked" />
+    </VerticalStackLayout>
+</ContentPage>
