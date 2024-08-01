@@ -1,9 +1,16 @@
-namespace RoadsideService.Views;
+using RoadsideService.ViewModels;
 
-public partial class HomePage : ContentPage
+
+namespace RoadsideService.Views
 {
-	public HomePage()
-	{
-		InitializeComponent();
-	}
+    public partial class HomePage : ContentPage
+    {
+        public HomePage()
+        {
+            InitializeComponent();
+            BindingContext = new WorkingViewModel();
+        }
+
+        
+    }
 }

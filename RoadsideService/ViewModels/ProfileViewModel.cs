@@ -75,52 +75,61 @@ namespace RoadsideService.ViewModels
         private async Task LoadUserProfileAsync()
         {
             // Retrieve the mobile number from preferences
-            var mobileNumber = Preferences.Get("mobile_number", string.Empty);
-
-            if (!string.IsNullOrEmpty(mobileNumber))
+            try
             {
-                // Retrieve user details
-                var users = await _firebaseClient
-                    .Child("users")
-                    .OnceAsync<Users>();
+                var mobileNumber = Preferences.Get("mobile_number", string.Empty);
 
-                var user = users.FirstOrDefault(u => u.Object.MobileNumber == mobileNumber)?.Object;
-
-                if (user != null)
+                if (!string.IsNullOrEmpty(mobileNumber))
                 {
-                    FirstName = user.FirstName;
-                    LastName = user.LastName;
-                    MobileNumber = user.MobileNumber;
+                    // Retrieve user details
+                    var users = await _firebaseClient
+                        .Child("users")
+                        .OnceAsync<Users>();
 
-                    // Retrieve vehicle details using the user ID
-                    var vehicles = await _firebaseClient
-                        .Child("vehicles")
-                        .OnceAsync<Vehicle>();
+                    var user = users.FirstOrDefault(u => u.Object.MobileNumber == mobileNumber)?.Object;
 
-                    var vehicle = vehicles.FirstOrDefault(v => v.Object.UserId == mobileNumber)?.Object;
-
-                    if (vehicle != null)
+                    if (user != null)
                     {
-                        VehicleDescription = vehicle.VehicleDescription;
-                        PlateNumber = vehicle.PlateNumber;
+                        FirstName = user.FirstName;
+                        LastName = user.LastName;
+                        MobileNumber = user.MobileNumber;
+
+                        // Retrieve vehicle details using the user ID
+                        var vehicles = await _firebaseClient
+                            .Child("vehicles")
+                            .OnceAsync<Vehicle>();
+
+                        var vehicle = vehicles.FirstOrDefault(v => v.Object.UserId == mobileNumber)?.Object;
+
+                        if (vehicle != null)
+                        {
+                            VehicleDescription = vehicle.VehicleDescription;
+                            PlateNumber = vehicle.PlateNumber;
+                        }
+                        else
+                        {
+                            // Handle the case where the vehicle is not found
+                            await Application.Current.MainPage.DisplayAlert("Error", "Vehicle not found.", "OK");
+                        }
                     }
                     else
                     {
-                        // Handle the case where the vehicle is not found
-                        await Application.Current.MainPage.DisplayAlert("Error", "Vehicle not found.", "OK");
+                        // Handle the case where the user is not found
+                        await Application.Current.MainPage.DisplayAlert("Error", "User not found.", "OK");
                     }
                 }
                 else
                 {
-                    // Handle the case where the user is not found
-                    await Application.Current.MainPage.DisplayAlert("Error", "User not found.", "OK");
+                    // Handle the case where the mobile number is not found in preferences
+                    await Application.Current.MainPage.DisplayAlert("Error", "Mobile number not found in preferences.", "OK");
                 }
             }
-            else
+            catch
             {
-                // Handle the case where the mobile number is not found in preferences
-                await Application.Current.MainPage.DisplayAlert("Error", "Mobile number not found in preferences.", "OK");
+                await Application.Current.MainPage.DisplayAlert("Error", "Something went wrong", "OK");
+
             }
+
         }
 
     }
