@@ -131,12 +131,103 @@ namespace RoadsideService.ViewModels
             if (IsTracking)
             {
                 StartTracking();
+                CheckRequest();
             }
             else
             {
                 StopTracking();
             }
         }
+
+        private async void CheckRequest()
+        {
+            try
+            {
+                var mobileNumber = Preferences.Get("mobile_number", string.Empty);
+
+                // Fetch all requests from Firebase
+                var allRequest = await _firebaseClient
+                    .Child("ClickedMobileNumbers")
+                    .OnceAsync<RequestData>();
+
+                // Find the request specific to this service provider
+                var ownRequest = allRequest.FirstOrDefault(c => c.Object.ServiceProviderId == mobileNumber);
+
+                if (ownRequest != null && ownRequest.Object.Status == "Pending")
+                {
+                    // Show a dialog box to the user
+                    bool acceptRequest = await Application.Current.MainPage.DisplayAlert(
+                        "New Request",
+                        $"You have a new request from driver {ownRequest.Object.DriverId} at location ({ownRequest.Object.Latitude}, {ownRequest.Object.Longitude}). Do you want to accept it?",
+                        "Yes",
+                        "No");
+
+                    if (acceptRequest)
+                    {
+                        var request = new GeolocationRequest(GeolocationAccuracy.Medium, TimeSpan.FromSeconds(10));
+                        var location = await Geolocation.GetLocationAsync(request);
+
+                        // Update the request status to "Accepted"
+                        ownRequest.Object.Status = "Accepted";
+                        ownRequest.Object.Date = DateTime.Now;
+                        ownRequest.Object.ServiceProviderLatitude = location.Latitude.ToString();
+                        ownRequest.Object.ServiceProviderLongitude = location.Longitude.ToString();
+
+                        await _firebaseClient
+                            .Child("ClickedMobileNumbers")
+                            .Child(ownRequest.Key)
+                            .PutAsync(ownRequest.Object);
+
+                        // Save the accepted request to the new "requests" table
+                        await SaveRequestToNewTable(ownRequest.Object);
+                        await _firebaseClient
+                            .Child("ClickedMobileNumbers")
+                            .Child(ownRequest.Key)
+                            .DeleteAsync();
+
+                        await Application.Current.MainPage.DisplayAlert("Request Accepted", "You have accepted the request.", "OK");
+                    }
+                    else
+                    {
+                        // Optionally delete or update the request status
+                        await _firebaseClient
+                            .Child("ClickedMobileNumbers")
+                            .Child(ownRequest.Key)
+                            .DeleteAsync();
+
+                        // Save the declined request to the new "requests" table with status "Declined"
+                        ownRequest.Object.Status = "Declined";
+                        await SaveRequestToNewTable(ownRequest.Object);
+
+                        await Application.Current.MainPage.DisplayAlert("Request Declined", "You have declined the request.", "OK");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                // Handle exceptions
+                await Application.Current.MainPage.DisplayAlert("Error", $"Failed to check request: {ex.Message}", "OK");
+            }
+        }
+
+        private async Task SaveRequestToNewTable(RequestData requestData)
+        {
+            try
+            {
+                // Save the request to the new "requests" table
+                await _firebaseClient
+                    .Child("requests")
+                    .PostAsync(requestData);
+            }
+            catch (Exception ex)
+            {
+                // Handle exceptions during saving
+                await Application.Current.MainPage.DisplayAlert("Error", $"Failed to save request to new table: {ex.Message}", "OK");
+            }
+        }
+
+
+
 
         private void StartTracking()
         {
@@ -145,11 +236,13 @@ namespace RoadsideService.ViewModels
             {
                 while (!_cancellationTokenSource.Token.IsCancellationRequested)
                 {
-                    await SendWorkingInfoAsync();
+                    //await CheckRequest();
+                    await SendWorkingInfoAsync(); // Update location
                     await Task.Delay(TimeSpan.FromSeconds(3), _cancellationTokenSource.Token);
                 }
             }, _cancellationTokenSource.Token);
         }
+
 
         private async void StopTracking()
         {
