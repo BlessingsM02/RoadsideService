@@ -19,6 +19,7 @@ namespace RoadsideService.ViewModels
         {
             SubmitCommand = new Command(async () => await SubmitAsync());
             _firebaseClient = new FirebaseClient("https://roadside-service-f65db-default-rtdb.firebaseio.com/");
+            CheckUserExistsAsync();
         }
 
         public string FirstName
@@ -63,6 +64,30 @@ namespace RoadsideService.ViewModels
 
         public ICommand SubmitCommand { get; }
 
+        private async Task CheckUserExistsAsync()
+        {
+            var mobileNumber = Preferences.Get("mobile_number", string.Empty);
+
+            if (!string.IsNullOrEmpty(mobileNumber))
+            {
+                var users = await _firebaseClient
+                    .Child("users")
+                    .OnceAsync<Users>();
+
+                var user = users.FirstOrDefault(u => u.Object.MobileNumber == mobileNumber);
+
+                if (user != null)
+                {
+                    await Application.Current.MainPage.DisplayAlert("Info", "A user with this mobile number already exists.", "OK");
+                    await Shell.Current.GoToAsync($"//{nameof(ProfilePage)}");
+                }
+            }
+            else
+            {
+                await Application.Current.MainPage.DisplayAlert("Error", "Mobile number not found in preferences.", "OK");
+            }
+        }
+
         private async Task SubmitAsync()
         {
             if (string.IsNullOrEmpty(FirstName) || string.IsNullOrEmpty(LastName) ||
@@ -88,12 +113,12 @@ namespace RoadsideService.ViewModels
                 }
                 else
                 {
-                    await Application.Current.MainPage.DisplayAlert("Error", "Mobile number not found in preferences.", "OK");
+                    await Application.Current.MainPage.DisplayAlert("Error", "Something went wrong. Try restarting the application.", "OK");
                 }
             }
             catch (Exception ex)
             {
-                await Application.Current.MainPage.DisplayAlert("Error", $"An error occurred: {ex.Message}", "OK");
+                await Application.Current.MainPage.DisplayAlert("Error", $"An error occurred", "OK");
             }
         }
 

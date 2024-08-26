@@ -13,6 +13,11 @@
         ContentTemplate="{DataTemplate local:MainPage}"
         Route="MainPage" />
 
+    <ShellContent
+        Title="Home"
+        ContentTemplate="{DataTemplate locals:RequestDetailsPage}"
+        Route="MainPage" />
+
     <TabBar FlyoutDisplayOptions="AsMultipleItems">
         <ShellContent
             Title="Home"

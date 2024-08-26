@@ -2,28 +2,45 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="RoadsideService.MainPage"
+             xmlns:sf="clr-namespace:Syncfusion.Maui.Core;assembly=Syncfusion.Maui.Core"
              Shell.FlyoutBehavior="Disabled">
 
-    <ScrollView>
-        <VerticalStackLayout Spacing="25"
-                     Padding="30,0"
-                     VerticalOptions="Center"
-                     x:Name="mobileinfo">
+    <VerticalStackLayout Spacing="25"
+             Padding="30,0"
+             VerticalOptions="Center"
+             x:Name="mobileinfo">
 
-            <Entry Placeholder="Enter mobile number" 
-                   x:Name="MobileEntry" />
-            <Button Text="Submit" 
-                    x:Name="btnS"
-                    Clicked="Submit_Clicked" />
+        <sf:SfTextInputLayout Hint="Mobile Number"
+                      OutlineCornerRadius="9"
+                      ContainerType="Outlined"
+                      ContainerBackground="White">
+            <Entry Placeholder="Enter Mobile Number"
+            x:Name="MobileEntry"
+        
+            Keyboard="Telephone"/>
+        </sf:SfTextInputLayout>
 
 
-            <VerticalStackLayout IsVisible="False" x:Name="verificationInfo">
-                <Entry x:Name="codeEntry" />
-                <Button Text="Verify" 
-                        x:Name="btnVerify" 
-                        Clicked="btnVerify_Clicked" />
-            </VerticalStackLayout>
+
+        <Button Text="Submit" 
+            x:Name="btnS"
+    Clicked="Submit_Clicked" />
+
+
+        <VerticalStackLayout IsVisible="False" x:Name="verificationInfo">
+
+            <sf:SfTextInputLayout Hint="OTP"
+                          OutlineCornerRadius="9"
+                          ContainerType="Outlined"
+                          ContainerBackground="White">
+                <Entry Placeholder="Enter OTP"
+            x:Name="codeEntry" />
+            </sf:SfTextInputLayout>
+
+            <Button Text="Verify" 
+        x:Name="btnVerify" 
+        Clicked="btnVerify_Clicked" />
         </VerticalStackLayout>
-    </ScrollView>
+    </VerticalStackLayout>
 
 </ContentPage>

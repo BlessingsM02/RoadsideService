@@ -14,7 +14,7 @@
         <Label Text="{Binding Latitude}"/>
         <Label Text="{Binding Longitude}"/>
 
-        <Label Text="Working??" />
+        <Label Text="Working" />
         <CheckBox IsChecked="{Binding IsTracking}" />
        
     </StackLayout>

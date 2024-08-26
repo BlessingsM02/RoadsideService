@@ -4,28 +4,76 @@
              x:Class="RoadsideService.Views.ProfilePage"
              xmlns:local="clr-namespace:RoadsideService.ViewModels"
              Shell.FlyoutBehavior="Disabled"
+             xmlns:sf="clr-namespace:Syncfusion.Maui.Core;assembly=Syncfusion.Maui.Core"
              Title="ProfilePage">
     <ContentPage.BindingContext>
         <local:ProfileViewModel />
     </ContentPage.BindingContext>
 
     <VerticalStackLayout Spacing="20" Padding="20">
-        <Label Text="First Name:" />
-        <Label Text="{Binding FirstName}" FontSize="Large" />
 
-        <Label Text="Last Name:" />
-        <Label Text="{Binding LastName}" FontSize="Large" />
+        <sf:SfTextInputLayout Hint="First Name:"
+                      ContainerType="Outlined"
+                      OutlineCornerRadius="9"
+                      ContainerBackground="White"
+                      HeightRequest="80"
+                      IsHintAlwaysFloated="True">
+            <Entry Text="{Binding FirstName}"
+           PlaceholderColor="Gray"
+           FontAttributes="Bold"
+           IsReadOnly="{Binding IsReadOnly}"/>
+        </sf:SfTextInputLayout>
 
-        <Label Text="Mobile:" />
-        <Label Text="{Binding MobileNumber}" FontSize="Large" />
+        <sf:SfTextInputLayout Hint="Last Name:"
+                      ContainerBackground="White"
+                      ContainerType="Outlined"
+                      OutlineCornerRadius="9"
+                      HeightRequest="80"
+                      IsHintAlwaysFloated="True">
+            <Entry Text="{Binding LastName}"
+           PlaceholderColor="Gray"
+           FontAttributes="Bold"
+           IsReadOnly="{Binding IsReadOnly}"/>
+        </sf:SfTextInputLayout>
 
-        <Label Text="Vehicle Description:" />
-        <Label Text="{Binding VehicleDescription}" FontSize="Large" />
+        <sf:SfTextInputLayout Hint="Mobile Number:"
+                      ContainerBackground="White"
+                      ContainerType="Outlined"
+                      OutlineCornerRadius="9"
+                      HeightRequest="80"
+                      IsHintAlwaysFloated="True">
+            <Entry Text="{Binding MobileNumber}"
+           PlaceholderColor="Gray"
+           FontAttributes="Bold"
+           IsReadOnly="True"/>
+        </sf:SfTextInputLayout>
 
-        <Label Text="Plate Number:"/>
-        <Label Text="{Binding PlateNumber}" FontSize="Large" />
+        <sf:SfTextInputLayout Hint="Vehicle Description:"
+                      ContainerBackground="White"
+                      ContainerType="Outlined"
+                      OutlineCornerRadius="9"
+                      HeightRequest="80"
+                      IsHintAlwaysFloated="True">
+            <Entry Text="{Binding VehicleDescription}"
+           PlaceholderColor="Gray"
+           FontAttributes="Bold"
+           IsReadOnly="{Binding IsReadOnly}"/>
+        </sf:SfTextInputLayout>
 
-        <Button Text="Reload Profile" Command="{Binding LoadUserProfileCommand}" />
+        <sf:SfTextInputLayout Hint="Plate Number:"
+                      ContainerBackground="White"
+                      ContainerType="Outlined"
+                      OutlineCornerRadius="9"
+                      HeightRequest="80"
+                      IsHintAlwaysFloated="True">
+            <Entry Text="{Binding PlateNumber}"
+           PlaceholderColor="Gray"
+           FontAttributes="Bold"
+           IsReadOnly="{Binding IsReadOnly}"/>
+        </sf:SfTextInputLayout>
+
+        <Button Text="{Binding EditButtonText}" Command="{Binding ToggleEditModeCommand}" />
         <Button Text="Logout" Clicked="OnLogoutButtonClicked" />
     </VerticalStackLayout>
+
 </ContentPage>

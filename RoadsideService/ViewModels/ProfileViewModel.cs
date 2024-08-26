@@ -1,5 +1,5 @@
-﻿
-using Firebase.Database;
+﻿using Firebase.Database;
+using Firebase.Database.Query;
 using RoadsideService.Models;
 
 namespace RoadsideService.ViewModels
@@ -11,12 +11,15 @@ namespace RoadsideService.ViewModels
         private string _vehicleDescription;
         private string _plateNumber;
         private string _mobileNumber;
-        private FirebaseClient _firebaseClient;
+        private bool _isReadOnly = true;
+        private string _editButtonText = "Edit Profile";
+        private readonly FirebaseClient _firebaseClient;
 
         public ProfileViewModel()
         {
             _firebaseClient = new FirebaseClient("https://roadside-service-f65db-default-rtdb.firebaseio.com/");
             LoadUserProfileCommand = new Command(async () => await LoadUserProfileAsync());
+            ToggleEditModeCommand = new Command(ToggleEditMode);
             LoadUserProfileCommand.Execute(null);
         }
 
@@ -70,18 +73,37 @@ namespace RoadsideService.ViewModels
             }
         }
 
+        public bool IsReadOnly
+        {
+            get => _isReadOnly;
+            set
+            {
+                _isReadOnly = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public string EditButtonText
+        {
+            get => _editButtonText;
+            set
+            {
+                _editButtonText = value;
+                OnPropertyChanged();
+            }
+        }
+
         public Command LoadUserProfileCommand { get; }
+        public Command ToggleEditModeCommand { get; }
 
         private async Task LoadUserProfileAsync()
         {
-            // Retrieve the mobile number from preferences
-            try
-            {
-                var mobileNumber = Preferences.Get("mobile_number", string.Empty);
+            var mobileNumber = Preferences.Get("mobile_number", string.Empty);
 
-                if (!string.IsNullOrEmpty(mobileNumber))
+            if (!string.IsNullOrEmpty(mobileNumber))
+            {
+                try
                 {
-                    // Retrieve user details
                     var users = await _firebaseClient
                         .Child("users")
                         .OnceAsync<Users>();
@@ -94,7 +116,6 @@ namespace RoadsideService.ViewModels
                         LastName = user.LastName;
                         MobileNumber = user.MobileNumber;
 
-                        // Retrieve vehicle details using the user ID
                         var vehicles = await _firebaseClient
                             .Child("vehicles")
                             .OnceAsync<Vehicle>();
@@ -108,30 +129,97 @@ namespace RoadsideService.ViewModels
                         }
                         else
                         {
-                            // Handle the case where the vehicle is not found
                             await Application.Current.MainPage.DisplayAlert("Error", "Vehicle not found.", "OK");
                         }
                     }
                     else
                     {
-                        // Handle the case where the user is not found
                         await Application.Current.MainPage.DisplayAlert("Error", "User not found.", "OK");
                     }
                 }
-                else
+                catch (Exception ex)
                 {
-                    // Handle the case where the mobile number is not found in preferences
-                    await Application.Current.MainPage.DisplayAlert("Error", "Mobile number not found in preferences.", "OK");
+                    // Handle exceptions, such as network errors
+                    await Application.Current.MainPage.DisplayAlert("Error", "Unable to load user data. Please check your internet connection.", "OK");
+                    return;
                 }
             }
-            catch
+            else
             {
-                await Application.Current.MainPage.DisplayAlert("Error", "Something went wrong", "OK");
-
+                await Application.Current.MainPage.DisplayAlert("Error", "Mobile number not found in preferences.", "OK");
             }
-
         }
 
-    }
+        private void ToggleEditMode()
+        {
+            if (IsReadOnly)
+            {
+                IsReadOnly = false;
+                EditButtonText = "Save Changes";
+            }
+            else
+            {
+                IsReadOnly = true;
+                EditButtonText = "Edit Profile";
+                SaveProfileAsync();
+            }
+        }
 
+        private async void SaveProfileAsync()
+        {
+            try
+            {
+                var mobileNumber = Preferences.Get("mobile_number", string.Empty);
+
+                if (!string.IsNullOrEmpty(mobileNumber))
+                {
+                    var user = (await _firebaseClient
+                        .Child("users")
+                        .OnceAsync<Users>())
+                        .FirstOrDefault(u => u.Object.MobileNumber == mobileNumber)?.Object;
+
+                    if (user != null)
+                    {
+                        user.FirstName = FirstName;
+                        user.LastName = LastName;
+
+                        await _firebaseClient
+                            .Child("users")
+                            .Child(mobileNumber)
+                            .PutAsync(user);
+
+                        var vehicle = (await _firebaseClient
+                            .Child("vehicles")
+                            .OnceAsync<Vehicle>())
+                            .FirstOrDefault(v => v.Object.UserId == mobileNumber)?.Object;
+
+                        if (vehicle != null)
+                        {
+                            vehicle.VehicleDescription = VehicleDescription;
+                            vehicle.PlateNumber = PlateNumber;
+
+                            await _firebaseClient
+                                .Child("vehicles")
+                                .Child(mobileNumber)
+                                .PutAsync(vehicle);
+
+                            await Application.Current.MainPage.DisplayAlert("Success", "Profile updated successfully.", "OK");
+                        }
+                        else
+                        {
+                            await Application.Current.MainPage.DisplayAlert("Error", "Vehicle not found.", "OK");
+                        }
+                    }
+                    else
+                    {
+                        await Application.Current.MainPage.DisplayAlert("Error", "User not found.", "OK");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                await Application.Current.MainPage.DisplayAlert("Error", $"Failed to update profile: {ex.Message}", "OK");
+            }
+        }
+    }
 }
