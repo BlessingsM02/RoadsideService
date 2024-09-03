@@ -61,6 +61,8 @@
 	  <None Remove="Resources\Images\history.svg" />
 	  <None Remove="Resources\Images\home.svg" />
 	  <None Remove="Resources\Images\profile.svg" />
+	  <None Remove="Resources\Images\profile2.svg" />
+	  <None Remove="Resources\Images\project_logo.svg" />
 	</ItemGroup>
 
 	<ItemGroup>
@@ -73,6 +75,7 @@
 		<PackageReference Include="Microsoft.Maui.Controls" Version="$(MauiVersion)" />
 		<PackageReference Include="Microsoft.Maui.Controls.Compatibility" Version="$(MauiVersion)" />
 		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="8.0.0" />
+		<PackageReference Include="Mopups" Version="1.3.1" />
 		<PackageReference Include="Syncfusion.Maui.Core" Version="26.2.8" />
 		<PackageReference Include="Microsoft.Maui.Controls.Maps" Version="8.0.70" />
 	</ItemGroup>
@@ -103,6 +106,9 @@
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
 	  <MauiXaml Update="Views\ProfilePage.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
+	  <MauiXaml Update="Views\RequestDetailsBottomSheet.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
 	  <MauiXaml Update="Views\RequestDetailsPage.xaml">

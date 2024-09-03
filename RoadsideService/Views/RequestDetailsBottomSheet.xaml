@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<mopups:PopupPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:mopups="clr-namespace:Mopups.Pages;assembly=Mopups"
+             x:Class="RoadsideService.Views.RequestDetailsBottomSheet">
+    <StackLayout BackgroundColor="White"
+                 Padding="20"
+                 VerticalOptions="End"
+                 HeightRequest="300">
+
+        <Label Text="Request Details"
+               FontAttributes="Bold"
+               FontSize="20"
+               TextColor="Black"
+               HorizontalOptions="Center"/>
+
+        <!-- Add more controls as needed -->
+
+        <Button Text="Cancel Request"
+                Command="{Binding CloseCommand}"
+                BackgroundColor="Red"
+                TextColor="White"
+                CornerRadius="20"
+                HeightRequest="50"
+                VerticalOptions="EndAndExpand"/>
+
+    </StackLayout>
+</mopups:PopupPage>

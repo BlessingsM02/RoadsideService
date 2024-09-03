@@ -14,9 +14,9 @@
         Route="MainPage" />
 
     <ShellContent
-        Title="Home"
+        Title="RequestDetailsPage"
         ContentTemplate="{DataTemplate locals:RequestDetailsPage}"
-        Route="MainPage" />
+        Route="RequestDetailsPage" />
 
     <TabBar FlyoutDisplayOptions="AsMultipleItems">
         <ShellContent

@@ -3,44 +3,72 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="RoadsideService.MainPage"
              xmlns:sf="clr-namespace:Syncfusion.Maui.Core;assembly=Syncfusion.Maui.Core"
-             Shell.FlyoutBehavior="Disabled">
+             Shell.FlyoutBehavior="Disabled"
+             Shell.NavBarIsVisible="False">
 
-    <VerticalStackLayout Spacing="25"
-             Padding="30,0"
-             VerticalOptions="Center"
-             x:Name="mobileinfo">
+    <ScrollView>
+        <VerticalStackLayout Spacing="30"
+                             Padding="30"
+                             VerticalOptions="CenterAndExpand">
 
-        <sf:SfTextInputLayout Hint="Mobile Number"
-                      OutlineCornerRadius="9"
-                      ContainerType="Outlined"
-                      ContainerBackground="White">
-            <Entry Placeholder="Enter Mobile Number"
-            x:Name="MobileEntry"
-        
-            Keyboard="Telephone"/>
-        </sf:SfTextInputLayout>
+            <!-- App Logo or Title -->
+            <Image Source="project_logo"
+                   HorizontalOptions="Center"
+                   HeightRequest="150"
+                   WidthRequest="150"
+                   Margin="0,0,0,20"/>
 
+            <!-- Mobile Number and OTP Input Section -->
+            <Frame BackgroundColor="#F0F0F0"
+                   CornerRadius="10"
+                   Padding="20"
+                   HasShadow="True">
+                <VerticalStackLayout Spacing="20">
+                    <Label Text="Enter Mobile Number and OTP"
+                           FontAttributes="Bold"
+                           FontSize="18"
+                           TextColor="#333"
+                           HorizontalOptions="Center"/>
 
+                    <!-- Mobile Number Input -->
+                    <sf:SfTextInputLayout Hint="Mobile Number"
+                                          OutlineCornerRadius="10"
+                                          ContainerType="Outlined"
+                                          HeightRequest="90"
+                                          ContainerBackground="White">
+                        <Entry Placeholder="Enter Mobile Number"
+                               x:Name="MobileEntry"
+                               Keyboard="Telephone"
+                               MaxLength="10"
+                               HorizontalOptions="FillAndExpand"/>
+                    </sf:SfTextInputLayout>
 
-        <Button Text="Submit" 
-            x:Name="btnS"
-    Clicked="Submit_Clicked" />
+                    <!-- OTP Input -->
+                    <sf:SfTextInputLayout Hint="OTP"
+                                          OutlineCornerRadius="10"
+                                          ContainerType="Outlined"
+                                          HeightRequest="90"
+                                          ContainerBackground="White">
+                        <Entry Placeholder="Enter OTP"
+                               x:Name="codeEntry"
+                               Keyboard="Numeric"
+                               MaxLength="6"
+                               IsEnabled="False"
+                               HorizontalOptions="FillAndExpand"/>
+                    </sf:SfTextInputLayout>
 
-
-        <VerticalStackLayout IsVisible="False" x:Name="verificationInfo">
-
-            <sf:SfTextInputLayout Hint="OTP"
-                          OutlineCornerRadius="9"
-                          ContainerType="Outlined"
-                          ContainerBackground="White">
-                <Entry Placeholder="Enter OTP"
-            x:Name="codeEntry" />
-            </sf:SfTextInputLayout>
-
-            <Button Text="Verify" 
-        x:Name="btnVerify" 
-        Clicked="btnVerify_Clicked" />
+                    <!-- Submit Button -->
+                    <Button Text="Submit"
+                            x:Name="btnSubmit"
+                            Clicked="Submit_Clicked"
+                            TextColor="White"
+                            CornerRadius="10"
+                            HorizontalOptions="FillAndExpand"
+                            Padding="15"/>
+                </VerticalStackLayout>
+            </Frame>
         </VerticalStackLayout>
-    </VerticalStackLayout>
+    </ScrollView>
+
 
 </ContentPage>

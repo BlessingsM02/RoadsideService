@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
+using Mopups.Hosting;
 using RoadsideService.Services;
 using Syncfusion.Maui.Core.Hosting;
 
@@ -13,6 +14,7 @@ namespace RoadsideService
                 .UseMauiApp<App>()
                 .UseMauiMaps()
                 .ConfigureSyncfusionCore()
+                .ConfigureMopups()
                 .ConfigureFonts(fonts =>
                 {
                     fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");

@@ -1,71 +1,136 @@
-﻿using RoadsideService.Services;
+﻿using Firebase.Database;
+using RoadsideService.Services;
 using RoadsideService.Views;
+using RoadsideService.Models;
 
 namespace RoadsideService
 {
     public partial class MainPage : ContentPage
     {
         private readonly IAuthenticationService _authenticationService;
+        private bool _isOTPPhase = false;
+        private readonly FirebaseClient _firebaseClient;
 
         public MainPage(IAuthenticationService authenticationService)
         {
             InitializeComponent();
+            _firebaseClient = new FirebaseClient("https://roadside-service-f65db-default-rtdb.firebaseio.com/");
+            _authenticationService = authenticationService;
+            CheckIfUserHasRequest();
+            CheckIfUserIsLoggedIn();
+        }
 
-            //check if user is already logged in
+        //check if user is already logged in
+        private void CheckIfUserIsLoggedIn()
+        {
             var savedMobileNumber = Preferences.Get("mobile_number", string.Empty);
             if (!string.IsNullOrEmpty(savedMobileNumber))
             {
-                // Directly navigate to NewPage1
                 Shell.Current.GoToAsync($"//{nameof(HomePage)}");
             }
-
-            _authenticationService = authenticationService;
         }
 
+        //check if user has an active request
+        private async Task CheckIfUserHasRequest()
+        {
+            var savedMobileNumber = Preferences.Get("mobile_number", string.Empty);
+            var requests = await _firebaseClient
+                        .Child("requests")
+                        .OnceAsync<dynamic>();
+
+            foreach (var request in requests)
+            {
+
+                if (request.Object.ServiceProviderId == savedMobileNumber)
+                {
+                    await Shell.Current.GoToAsync($"//{nameof(RequestDetailsPage)}");
+                }
+            }
+        }
 
         private async void Submit_Clicked(object sender, EventArgs e)
         {
-            if (!string.IsNullOrWhiteSpace(MobileEntry.Text))
+            if (_isOTPPhase)
             {
-                var isValidMobile = await _authenticationService.AuthenticateMobile(MobileEntry.Text);
-                if (isValidMobile)
-                {
-                    // Show verification UI and disable input controls
-                    verificationInfo.IsVisible = true;
-                    MobileEntry.IsEnabled = false;
-                    btnS.IsEnabled = false;
-                }
-                else
-                {
-                    await DisplayAlert("Error", "Invalid Mobile Number", "OK");
-                }
+                await VerifyOTP();
             }
             else
             {
-                await DisplayAlert("Error", "Please enter a Mobile Number", "OK");
+                await SubmitMobileNumber();
             }
         }
 
-        private async void btnVerify_Clicked(object sender, EventArgs e)
+        private async Task SubmitMobileNumber()
         {
-            if (!string.IsNullOrWhiteSpace(codeEntry.Text))
+            try
+            {
+                if (IsValidMobileNumber())
+                {
+                    IsBusy = true; // Show loading indicator
+                    var isValidMobile = await _authenticationService.AuthenticateMobile("+26" + MobileEntry.Text);
+                    if (isValidMobile)
+                    {
+                        TransitionToOTPPhase();
+                    }
+                    else
+                    {
+                        await DisplayAlert("Error", "Failed to send OTP. Please try again.", "OK");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                await DisplayAlert("Error", $"An error occurred: {ex.Message}", "OK");
+            }
+            finally
+            {
+                IsBusy = false; // Hide loading indicator
+            }
+        }
+
+
+        private async Task VerifyOTP()
+        {
+            if (IsValidOTP())
             {
                 var isValidCode = await _authenticationService.ValidateOTP(codeEntry.Text);
                 if (isValidCode)
                 {
-                    // Navigate to the next page upon successful validation
-                    await Navigation.PushAsync(new Views.NewPage1());
+                    await Navigation.PushAsync(new NewPage1());
                 }
                 else
                 {
                     await DisplayAlert("Error", "Invalid Verification Code", "OK");
                 }
             }
-            else
+        }
+
+        private void TransitionToOTPPhase()
+        {
+            _isOTPPhase = true;
+            MobileEntry.IsEnabled = false; // Disable mobile number input
+            codeEntry.IsEnabled = true;    // Enable OTP input
+            btnSubmit.Text = "Verify";     // Change button text to "Verify"
+        }
+
+        private bool IsValidMobileNumber()
+        {
+            if (string.IsNullOrWhiteSpace(MobileEntry.Text))
             {
-                await DisplayAlert("Error", "Please enter a Verification Code", "OK");
+                DisplayAlert("Error", "Please enter a Mobile Number", "OK");
+                return false;
             }
+            return true;
+        }
+
+        private bool IsValidOTP()
+        {
+            if (string.IsNullOrWhiteSpace(codeEntry.Text))
+            {
+                DisplayAlert("Error", "Please enter a Verification Code", "OK");
+                return false;
+            }
+            return true;
         }
     }
-
 }
