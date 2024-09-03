@@ -3,6 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="RoadsideService.Views.HistoryPage"
              Shell.FlyoutBehavior="Disabled"
+             Shell.NavBarIsVisible="False"
              Title="HistoryPage">
     <VerticalStackLayout>
         <Label 

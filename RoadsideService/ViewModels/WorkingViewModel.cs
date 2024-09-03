@@ -172,6 +172,8 @@ namespace RoadsideService.ViewModels
                             .Child(ownRequest.Key)
                             .DeleteAsync();
 
+                        StopTracking();
+
                         await Application.Current.MainPage.DisplayAlert("Request Accepted", "You have accepted the request.", "OK");
                         await Shell.Current.GoToAsync($"//{nameof(RequestDetailsPage)}");
                     }
