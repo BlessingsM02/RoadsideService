@@ -9,12 +9,14 @@ namespace RoadsideService.Models
     internal class RequestData
     {
         public string ServiceProviderId { get; set; }
-        public string Latitude { get; set; }
-        public string Longitude { get; set; }
-        public string ServiceProviderLatitude { get; set; }
-        public string ServiceProviderLongitude { get; set; }
+        public double Latitude { get; set; }
+        public double Longitude { get; set; }
+        public double ServiceProviderLatitude { get; set; }
+        public double ServiceProviderLongitude { get; set; }
+        public double Amount { get; set; }
         public string DriverId { get; set; }
         public string Status { get; set; }
+        public string RatingId { get; set; }
         public DateTime Date { get; set; }
     }
 }

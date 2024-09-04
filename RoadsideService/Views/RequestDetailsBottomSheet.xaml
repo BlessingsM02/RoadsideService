@@ -1,8 +1,15 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <mopups:PopupPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
-             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             xmlns:mopups="clr-namespace:Mopups.Pages;assembly=Mopups"
-             x:Class="RoadsideService.Views.RequestDetailsBottomSheet">
+                  xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+                  xmlns:mopups="clr-namespace:Mopups.Pages;assembly=Mopups"
+                  xmlns:local="clr-namespace:RoadsideService.ViewModels"
+                  x:Class="RoadsideService.Views.RequestDetailsBottomSheet"
+                  Shell.FlyoutBehavior="Disabled">
+
+    <ContentPage.BindingContext>
+        <local:RequestDetailsViewModel />
+    </ContentPage.BindingContext>
+
     <StackLayout BackgroundColor="White"
                  Padding="20"
                  VerticalOptions="End"
@@ -14,10 +21,31 @@
                TextColor="Black"
                HorizontalOptions="Center"/>
 
-        <!-- Add more controls as needed -->
+        <Label Text="Full Name:"
+               FontAttributes="Bold"/>
+        <Label Text="{Binding DriverName}" />
+
+        <Label Text="Contact:"
+               FontAttributes="Bold"/>
+        <Label Text="{Binding DriverId}">
+            <Label.GestureRecognizers>
+                <TapGestureRecognizer
+                    Command="{Binding OpenDialerCommand}"
+                    CommandParameter="{Binding DriverId}" />
+            </Label.GestureRecognizers>
+        </Label>
+
+        <Label Text="Vehicle:"
+               FontAttributes="Bold"/>
+        <Label Text="{Binding VehicleDetails}" />
+
+        <Button Text="Mark Complete"
+                TextColor="White"
+                CornerRadius="20"
+                HeightRequest="50"
+                VerticalOptions="EndAndExpand"/>
 
         <Button Text="Cancel Request"
-                Command="{Binding CloseCommand}"
                 BackgroundColor="Red"
                 TextColor="White"
                 CornerRadius="20"

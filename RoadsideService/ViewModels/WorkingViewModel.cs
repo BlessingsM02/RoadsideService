@@ -157,8 +157,8 @@ namespace RoadsideService.ViewModels
                         // Update the request status to "Accepted"
                         ownRequest.Object.Status = "Accepted";
                         ownRequest.Object.Date = DateTime.Now;
-                        ownRequest.Object.ServiceProviderLatitude = location.Latitude.ToString();
-                        ownRequest.Object.ServiceProviderLongitude = location.Longitude.ToString();
+                        ownRequest.Object.ServiceProviderLatitude = location.Latitude;
+                        ownRequest.Object.ServiceProviderLongitude = location.Longitude;
 
                         await _firebaseClient
                             .Child("ClickedMobileNumbers")

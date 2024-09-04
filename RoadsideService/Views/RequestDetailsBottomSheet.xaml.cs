@@ -1,4 +1,5 @@
 using Mopups.Services;
+using RoadsideService.ViewModels;
 using System.Windows.Input;
 
 namespace RoadsideService.Views;
@@ -6,17 +7,18 @@ namespace RoadsideService.Views;
 public partial class RequestDetailsBottomSheet
 {
     public ICommand CloseCommand { get; }
-
+    private readonly RequestDetailsViewModel _viewModel;
     public RequestDetailsBottomSheet()
     {
         InitializeComponent();
+        _viewModel = new RequestDetailsViewModel();
+        BindingContext = _viewModel;
+       // CloseCommand = new Command(() => MopupService.Instance.PopAsync());
+    }
 
-        // Command to close the popup
-        CloseCommand = new Command(() => MopupService.Instance.PopAsync());
-
-
-        BindingContext = this;
-
-        CloseWhenBackgroundIsClicked = true; // Prevent closing when tapping outside the popup
+    protected override void OnAppearing()
+    {
+        base.OnAppearing();
+        _viewModel.LoadRequestDetailsCommand.Execute(null);
     }
 }
