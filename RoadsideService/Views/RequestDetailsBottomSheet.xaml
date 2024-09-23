@@ -38,15 +38,13 @@
         <Label Text="Vehicle:"
                FontAttributes="Bold"/>
         <Label Text="{Binding VehicleDetails}" />
+        <Label Text="Amount:"
+               FontAttributes="Bold"/>
+        <Label Text="{Binding Amount}" />
 
-        <Button Text="Mark Complete"
-                TextColor="White"
-                CornerRadius="20"
-                HeightRequest="50"
-                VerticalOptions="EndAndExpand"/>
+  
 
-        <Button Text="Cancel Request"
-                BackgroundColor="Red"
+        <Button Text="Complete Request"
                 TextColor="White"
                 CornerRadius="20"
                 HeightRequest="50"

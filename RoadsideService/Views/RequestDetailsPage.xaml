@@ -4,28 +4,27 @@
              xmlns:maps="clr-namespace:Microsoft.Maui.Controls.Maps;assembly=Microsoft.Maui.Controls.Maps"
              x:Class="RoadsideService.Views.RequestDetailsPage"
              Shell.NavBarIsVisible="False"
-             Title="RequestDetailsPage">
-    <ContentPage.Content>
+             Shell.FlyoutBehavior="Disabled">
 
+    <ContentPage.Content>
         <Grid ColumnSpacing="40">
             <maps:Map x:Name="userMap"
                   IsShowingUser="True"
-                  MapType="Street"
                   VerticalOptions="FillAndExpand"
                   HorizontalOptions="FillAndExpand"
                   Margin="0,0,0,80"/>
 
-
             <Button 
-                    Text="Request Details"
-                    TextColor="White"
-                    FontAttributes="Bold"
-                    VerticalOptions="End"
-                    HorizontalOptions="FillAndExpand"
-                    HeightRequest="60"
-                    Margin="3"
-                    Clicked="Button_Clicked"
-                    CornerRadius="30"/>
+            Text="Request Details"
+            TextColor="White"
+            FontAttributes="Bold"
+            VerticalOptions="End"
+            HorizontalOptions="FillAndExpand"
+            HeightRequest="60"
+                Clicked="Button_Clicked"
+            Margin="3"
+            CornerRadius="30"/>
+
         </Grid>
     </ContentPage.Content>
 </ContentPage>

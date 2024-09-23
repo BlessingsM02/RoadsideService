@@ -35,6 +35,7 @@ namespace RoadsideService.ViewModels
         }
 
         public ICommand OpenDialerCommand { get; }
+        
 
         private void OpenDialer(string phoneNumber)
         {

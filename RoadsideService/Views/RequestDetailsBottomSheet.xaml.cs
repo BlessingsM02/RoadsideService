@@ -21,4 +21,6 @@ public partial class RequestDetailsBottomSheet
         base.OnAppearing();
         _viewModel.LoadRequestDetailsCommand.Execute(null);
     }
+
+  
 }

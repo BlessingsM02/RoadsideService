@@ -1,9 +1,9 @@
-﻿
 ﻿using Firebase.Database;
 using Firebase.Database.Query;
 using RoadsideService.Models;
 using RoadsideService.Views;
 using System.Windows.Input;
+
 namespace RoadsideService.ViewModels
 {
     public class WorkingViewModel : BindableObject
@@ -12,13 +12,17 @@ namespace RoadsideService.ViewModels
         private string _longitude;
         private string _latitude;
         private bool _isTracking;
+        private string _toggleTrackingButtonText = "Start Working";
+        private Color _trackingButtonColor = Colors.Green;
         private readonly FirebaseClient _firebaseClient;
         private CancellationTokenSource _cancellationTokenSource;
+
         public WorkingViewModel()
         {
             _firebaseClient = new FirebaseClient("https://roadside-service-f65db-default-rtdb.firebaseio.com/");
             ToggleTrackingCommand = new Command(ToggleTracking);
         }
+
         public string Id
         {
             get => _id;
@@ -28,6 +32,7 @@ namespace RoadsideService.ViewModels
                 OnPropertyChanged();
             }
         }
+
         public string Longitude
         {
             get => _longitude;
@@ -37,6 +42,7 @@ namespace RoadsideService.ViewModels
                 OnPropertyChanged();
             }
         }
+
         public string Latitude
         {
             get => _latitude;
@@ -46,6 +52,7 @@ namespace RoadsideService.ViewModels
                 OnPropertyChanged();
             }
         }
+
         public bool IsTracking
         {
             get => _isTracking;
@@ -53,10 +60,47 @@ namespace RoadsideService.ViewModels
             {
                 _isTracking = value;
                 OnPropertyChanged();
-                ToggleTracking();
             }
         }
+
+        public string ToggleTrackingButtonText
+        {
+            get => _toggleTrackingButtonText;
+            set
+            {
+                _toggleTrackingButtonText = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public Color TrackingButtonColor
+        {
+            get => _trackingButtonColor;
+            set
+            {
+                _trackingButtonColor = value;
+                OnPropertyChanged();
+            }
+        }
+
         public ICommand ToggleTrackingCommand { get; }
+
+        private void ToggleTracking()
+        {
+            if (IsTracking)
+            {
+                StopTracking();
+                ToggleTrackingButtonText = "Start Working";
+                TrackingButtonColor = Colors.Green;
+            }
+            else
+            {
+                StartTracking();
+                ToggleTrackingButtonText = "Stop Working";
+                TrackingButtonColor = Colors.Red;
+            }
+        }
+
         private async Task SendWorkingInfoAsync()
         {
             try
@@ -83,12 +127,13 @@ namespace RoadsideService.ViewModels
                 // Handle exception
             }
         }
+
         private async Task<bool> SaveLocation(string mobileNumber)
         {
-            // Check if a user with the same mobile number already exists
             var users = await _firebaseClient
                 .Child("working")
                 .OnceAsync<Working>();
+
             var user = users.FirstOrDefault(u => u.Object.Id == mobileNumber);
             var newTask = new Working
             {
@@ -96,6 +141,7 @@ namespace RoadsideService.ViewModels
                 Latitude = Latitude,
                 Longitude = Longitude,
             };
+
             if (user != null)
             {
                 // Update existing record
@@ -113,16 +159,53 @@ namespace RoadsideService.ViewModels
             }
             return true;
         }
-        private void ToggleTracking()
+
+        private void StartTracking()
         {
-            if (IsTracking)
+            _isTracking = true;
+            CheckRequest();
+            _cancellationTokenSource = new CancellationTokenSource();
+            Task.Run(async () =>
             {
-                StartTracking();
-                CheckRequest();
+                while (!_cancellationTokenSource.Token.IsCancellationRequested)
+                {
+                    await SendWorkingInfoAsync();
+                    await Task.Delay(TimeSpan.FromSeconds(5), _cancellationTokenSource.Token);
+                }
+            }, _cancellationTokenSource.Token);
+        }
+
+        private void StopTracking()
+        {
+            _isTracking = false;
+            _cancellationTokenSource?.Cancel();
+            DeleteLocation();
+        }
+
+        private async void DeleteLocation()
+        {
+            try
+            {
+                var mobileNumber = Preferences.Get("mobile_number", string.Empty);
+                if (!string.IsNullOrEmpty(mobileNumber))
+                {
+                    var users = await _firebaseClient
+                        .Child("working")
+                        .OnceAsync<Working>();
+
+                    var user = users.FirstOrDefault(u => u.Object.Id == mobileNumber);
+                    if (user != null)
+                    {
+                        await _firebaseClient
+                            .Child("working")
+                            .Child(user.Key)
+                            .DeleteAsync();
+                    }
+                }
             }
-            else
+            catch (Exception ex)
             {
-                StopTracking();
+                // Handle exception
             }
         }
 
@@ -157,6 +240,7 @@ namespace RoadsideService.ViewModels
                         // Update the request status to "Accepted"
                         ownRequest.Object.Status = "Accepted";
                         ownRequest.Object.Date = DateTime.Now;
+                        ownRequest.Object.Amount = 100;
                         ownRequest.Object.ServiceProviderLatitude = location.Latitude;
                         ownRequest.Object.ServiceProviderLongitude = location.Longitude;
 
@@ -186,8 +270,9 @@ namespace RoadsideService.ViewModels
                             .DeleteAsync();
 
                         // Save the declined request to the new "requests" table with status "Declined"
-                        ownRequest.Object.Status = "Declined";
-                        await SaveRequestToNewTable(ownRequest.Object);
+                        //ownRequest.Object.Status = "Declined";
+                        //await SaveRequestToNewTable(ownRequest.Object);
+                        
 
                         await Application.Current.MainPage.DisplayAlert("Request Declined", "You have declined the request.", "OK");
                     }
@@ -196,7 +281,7 @@ namespace RoadsideService.ViewModels
             catch (Exception ex)
             {
                 // Handle exceptions
-                await Application.Current.MainPage.DisplayAlert("Error", $"Failed to check request: {ex.Message}", "OK");
+                await Application.Current.MainPage.DisplayAlert("Error", "Failed to check requests", "OK");
             }
         }
 
@@ -212,56 +297,8 @@ namespace RoadsideService.ViewModels
             catch (Exception ex)
             {
                 // Handle exceptions during saving
-                await Application.Current.MainPage.DisplayAlert("Error", $"Failed to save request to new table: {ex.Message}", "OK");
-            }
-        }
-
-
-
-
-        private void StartTracking()
-        {
-            _cancellationTokenSource = new CancellationTokenSource();
-            Task.Run(async () =>
-            {
-                while (!_cancellationTokenSource.Token.IsCancellationRequested)
-                {
-                    await SendWorkingInfoAsync();
-                    //await CheckRequest();
-                    await SendWorkingInfoAsync(); // Update location
-                    await Task.Delay(TimeSpan.FromSeconds(5), _cancellationTokenSource.Token);
-                }
-            }, _cancellationTokenSource.Token);
-        }
-
-
-        private async void StopTracking()
-        {
-            _cancellationTokenSource?.Cancel();
-            // Delete the record from the Firebase database
-            try
-            {
-                var mobileNumber = Preferences.Get("mobile_number", string.Empty);
-                if (!string.IsNullOrEmpty(mobileNumber))
-                {
-                    var users = await _firebaseClient
-                        .Child("working")
-                        .OnceAsync<Working>();
-                    var user = users.FirstOrDefault(u => u.Object.Id == mobileNumber);
-                    if (user != null)
-                    {
-                        await _firebaseClient
-                            .Child("working")
-                            .Child(user.Key)
-                            .DeleteAsync();
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                // Handle exception
+                await Application.Current.MainPage.DisplayAlert("Info", "Something went wrong", "OK");
             }
         }
     }
-
 }
