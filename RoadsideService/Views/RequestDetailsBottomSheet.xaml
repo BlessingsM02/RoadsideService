@@ -20,7 +20,6 @@
                FontSize="20"
                TextColor="Black"
                HorizontalOptions="Center"/>
-
         <Label Text="Full Name:"
                FontAttributes="Bold"/>
         <Label Text="{Binding DriverName}" />
@@ -41,14 +40,11 @@
         <Label Text="Amount:"
                FontAttributes="Bold"/>
         <Label Text="{Binding Amount}" />
-
-  
-
+        
         <Button Text="Complete Request"
                 TextColor="White"
                 CornerRadius="20"
                 HeightRequest="50"
                 VerticalOptions="EndAndExpand"/>
-
     </StackLayout>
 </mopups:PopupPage>
