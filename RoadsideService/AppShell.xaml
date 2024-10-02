@@ -5,6 +5,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     xmlns:local="clr-namespace:RoadsideService"
     xmlns:locals="clr-namespace:RoadsideService.Views"
+    xmlns:payment="clr-namespace:RoadsideService.Views"
     Shell.FlyoutBehavior="Flyout"
     Title="RoadsideService">
 
@@ -12,6 +13,10 @@
         Title="Home"
         ContentTemplate="{DataTemplate local:MainPage}"
         Route="MainPage" />
+    <ShellContent
+    Title="PaymentPage"
+    ContentTemplate="{DataTemplate payment:PaymentPage}"
+    Route="PaymentPage" />
 
     <ShellContent
         Title="RequestDetailsPage"

@@ -109,8 +109,8 @@ namespace RoadsideService.ViewModels
                 //await SendNotificationAsync(DriverId, "Your request has been completed!");
 
                 // Show a dialog with the total price (Amount)
-                await Application.Current.MainPage.DisplayAlert("Request Completed", $"The total price is: ${Amount}", "OK");
-                await Shell.Current.GoToAsync($"//{nameof(HomePage)}");
+                await Application.Current.MainPage.DisplayAlert("Request Completed", $"The total price is: K{Amount}", "OK");
+                await Shell.Current.GoToAsync($"//{nameof(PaymentPage)}");
             }
             catch (Exception ex)
             {
