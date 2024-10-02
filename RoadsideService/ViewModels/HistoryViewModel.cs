@@ -1,75 +1,88 @@
-﻿using System.Collections.ObjectModel;
-using System.Linq;
+﻿using Firebase.Database;
+using RoadsideService.Models;
+using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Threading.Tasks;
-using Firebase.Database;
 using System.Windows.Input;
 using Microsoft.Maui.Controls;
-using RoadsideService.Models;
 
 namespace RoadsideService.ViewModels
 {
-    public class HistoryViewModel : BaseViewModel
+    internal class HistoryViewModel : INotifyPropertyChanged
     {
         private readonly FirebaseClient _firebaseClient;
-        private ObservableCollection<RequestData> _completedRequests;
-        private double _totalEarnings;
+        public ObservableCollection<RequestData> CompletedRequests { get; private set; }
+        public bool IsBusy { get; private set; }
 
-        private ObservableCollection<RequestData> CompletedRequests
+        private double _totalAmount; // Field to hold the total amount
+        public double TotalAmount
         {
-            get => _completedRequests;
-            set => SetProperty(ref _completedRequests, value);
+            get => _totalAmount;
+            private set
+            {
+                _totalAmount = value;
+                OnPropertyChanged(nameof(TotalAmount));
+            }
         }
 
-        public double TotalEarnings
-        {
-            get => _totalEarnings;
-            set => SetProperty(ref _totalEarnings, value);
-        }
-
-        public ICommand RefreshCommand { get; }
+        public ICommand RefreshCommand { get; private set; }
 
         public HistoryViewModel()
         {
             _firebaseClient = new FirebaseClient("https://roadside-service-f65db-default-rtdb.firebaseio.com/");
             CompletedRequests = new ObservableCollection<RequestData>();
-            RefreshCommand = new Command(async () => await LoadCompletedRequestsAsync());
+
+            // Initialize the refresh command
+            RefreshCommand = new Command(async () => await RefreshCompletedRequestsAsync());
         }
 
-        // Fetches completed requests and calculates total earnings
-        private async Task LoadCompletedRequestsAsync()
+        public async Task LoadCompletedRequestsAsync()
         {
-            IsBusy = true;
             try
             {
+                IsBusy = true;
                 var mobileNumber = Preferences.Get("mobile_number", string.Empty);
 
-                var requests = await _firebaseClient
-                    .Child("requests")
+                OnPropertyChanged(nameof(IsBusy));
+
+                // Fetch all completed requests from Firebase
+                var allRequests = await _firebaseClient
+                    .Child("complete")
                     .OnceAsync<RequestData>();
 
-                var completedRequests = requests
-                    .Where(r => r.Object.DriverId == mobileNumber && r.Object.Status == "Completed")
-                    .Select(r => r.Object)
-                    .ToList();
+                CompletedRequests.Clear(); // Clear previous data
+                TotalAmount = 0; // Reset total amount before calculation
 
-                CompletedRequests.Clear();
-                foreach (var request in completedRequests)
+                // Filter and add completed requests
+                foreach (var request in allRequests)
                 {
-                    CompletedRequests.Add(request);
+                    if (request.Object.ServiceProviderId == mobileNumber)
+                    {
+                        CompletedRequests.Add(request.Object);
+                        TotalAmount += request.Object.Amount; // Add to total amount
+                    }
                 }
-
-                // Calculate total earnings
-                TotalEarnings = CompletedRequests.Sum(r => r.Amount);
             }
             catch (Exception ex)
             {
-                // Handle errors, possibly notify the user
-                await Application.Current.MainPage.DisplayAlert("Error", $"Failed to load requests: {ex.Message}", "OK");
+                await Application.Current.MainPage.DisplayAlert("Error", $"Failed to load completed requests: {ex.Message}", "OK");
             }
             finally
             {
                 IsBusy = false;
+                OnPropertyChanged(nameof(IsBusy));
             }
+        }
+
+        private async Task RefreshCompletedRequestsAsync()
+        {
+            await LoadCompletedRequestsAsync();
+        }
+
+        public event PropertyChangedEventHandler PropertyChanged;
+        protected virtual void OnPropertyChanged(string propertyName)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
     }
 }

@@ -10,6 +10,7 @@ namespace RoadsideService.Models
     {
         public string ServiceProviderId { get; set; }
         public double Latitude { get; set; }
+        public string ServiceProviderName { get; set; }
         public double Longitude { get; set; }
         public double ServiceProviderLatitude { get; set; }
         public double ServiceProviderLongitude { get; set; }
