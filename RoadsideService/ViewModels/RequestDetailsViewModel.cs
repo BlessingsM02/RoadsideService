@@ -2,6 +2,7 @@
 using Firebase.Database.Query;
 using Microsoft.Maui.Controls;
 using RoadsideService.Models;
+using RoadsideService.Views;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
@@ -29,13 +30,14 @@ namespace RoadsideService.ViewModels
         public RequestDetailsViewModel()
         {
             OpenDialerCommand = new Command<string>(OpenDialer);
+            CompleteRequestCommand = new Command(async () => await CompleteRequestAsync());
             _firebaseClient2 = new FirebaseClient("https://roadside1-1ffd7-default-rtdb.firebaseio.com/");
             _firebaseClient = new FirebaseClient("https://roadside-service-f65db-default-rtdb.firebaseio.com/");
             LoadRequestDetailsCommand = new Command(async () => await LoadRequestDetailsAsync());
         }
 
         public ICommand OpenDialerCommand { get; }
-        
+        public ICommand CompleteRequestCommand { get; }
 
         private void OpenDialer(string phoneNumber)
         {
@@ -50,6 +52,85 @@ namespace RoadsideService.ViewModels
                     Application.Current.MainPage.DisplayAlert("Error", "Unable to open the dialer.", "OK");
                 }
             }
+        }
+
+
+        private async Task CompleteRequestAsync()
+        {
+            try
+            {
+                // Get the mobile number
+                var mobileNumber = Preferences.Get("mobile_number", string.Empty);
+
+                // Create a completed request entry in Firebase
+                await _firebaseClient
+                    .Child("complete")
+                    .PostAsync(new
+                    {
+                        ServiceProviderId = ServiceProviderId,
+                        Latitude = Latitude,
+                        Longitude = Longitude,
+                        ServiceProviderLatitude = ServiceProviderLatitude,
+                        ServiceProviderLongitude = ServiceProviderLongitude,
+                        Amount = Amount,
+                        DriverId = DriverId,
+                        Status = "Completed",
+                        RatingId = RatingId,
+                        Date = DateTime.Now
+                    });
+
+                // Optionally update the request's status in the original "requests" table
+                var requestToUpdate = (await _firebaseClient
+                    .Child("requests")
+                    .OnceAsync<RequestData>())
+                    .FirstOrDefault(r => r.Object.ServiceProviderId == mobileNumber);
+
+                if (requestToUpdate != null)
+                {
+                    await _firebaseClient
+                        .Child("requests")
+                        .Child(requestToUpdate.Key)
+                        .PutAsync(new RequestData
+                        {
+                            ServiceProviderId = ServiceProviderId,
+                            Latitude = Latitude,
+                            Longitude = Longitude,
+                            ServiceProviderLatitude = ServiceProviderLatitude,
+                            ServiceProviderLongitude = ServiceProviderLongitude,
+                            Amount = Amount,
+                            DriverId = DriverId,
+                            Status = "Completed",
+                            RatingId = RatingId,
+                            Date = Date
+                        });
+                }
+
+                // Send a notification to the other application (pseudo code)
+                //await SendNotificationAsync(DriverId, "Your request has been completed!");
+
+                // Show a dialog with the total price (Amount)
+                await Application.Current.MainPage.DisplayAlert("Request Completed", $"The total price is: ${Amount}", "OK");
+                await Shell.Current.GoToAsync($"//{nameof(HomePage)}");
+            }
+            catch (Exception ex)
+            {
+                await Application.Current.MainPage.DisplayAlert("Error", $"Failed to complete request: {ex.Message}", "OK");
+            }
+        }
+
+
+        private async Task SendNotificationAsync(string recipientId, string message)
+        {
+            // Logic to send a notification to another user/application
+            // For example, you might use Firebase Cloud Messaging (FCM)
+            await _firebaseClient
+                .Child("notifications")
+                .PostAsync(new
+                {
+                    RecipientId = recipientId,
+                    Message = message,
+                    Timestamp = DateTime.Now
+                });
         }
         public string ServiceProviderId
         {

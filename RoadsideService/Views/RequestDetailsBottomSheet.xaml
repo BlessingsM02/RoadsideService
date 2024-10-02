@@ -45,6 +45,7 @@
                 TextColor="White"
                 CornerRadius="20"
                 HeightRequest="50"
-                VerticalOptions="EndAndExpand"/>
+                VerticalOptions="EndAndExpand"
+                Command="{Binding CompleteRequestCommand}"/>
     </StackLayout>
 </mopups:PopupPage>

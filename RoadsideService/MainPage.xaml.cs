@@ -41,7 +41,7 @@ namespace RoadsideService
             foreach (var request in requests)
             {
 
-                if (request.Object.ServiceProviderId == savedMobileNumber)
+                if (request.Object.ServiceProviderId == savedMobileNumber && request.Object.Status == "Accepted")
                 {
                     await Shell.Current.GoToAsync($"//{nameof(RequestDetailsPage)}");
                 }
