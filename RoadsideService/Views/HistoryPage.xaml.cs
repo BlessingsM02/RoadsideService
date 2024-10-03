@@ -15,7 +15,7 @@ namespace RoadsideService.Views
         protected override async void OnAppearing()
         {
             base.OnAppearing();
-            await _viewModel.LoadCompletedRequestsAsync();
+            await _viewModel.LoadRequestsAsync();
         }
     }
 }
