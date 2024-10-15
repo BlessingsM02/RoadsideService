@@ -13,23 +13,23 @@
 
     <VerticalStackLayout Spacing="20" Padding="20">
 
-        <sf:SfTextInputLayout Hint="First Name"
+        <sf:SfTextInputLayout Hint="Full Name"
                               ContainerType="Outlined"
                               ContainerBackground="White"
                               OutlineCornerRadius="9">
             <Entry x:Name="nameEntry"
                 Placeholder="Enter First Name"
-                Text="{Binding FirstName}" />
+                Text="{Binding FullName}" />
         </sf:SfTextInputLayout>
 
-        <sf:SfTextInputLayout Hint="Last Name"
+        <!--<sf:SfTextInputLayout Hint="Contact"
                               ContainerType="Outlined"
                               ContainerBackground="White"
                               OutlineCornerRadius="9">
             <Entry x:Name="surnameEntry"
                    Placeholder="Enter Last Name"
-                   Text="{Binding LastName}" />
-        </sf:SfTextInputLayout>
+                   Text="{Binding Contact}" /> 
+        </sf:SfTextInputLayout> -->
 
 
         <sf:SfTextInputLayout Hint="Vehicle Decription"
@@ -54,6 +54,8 @@
         <Button x:Name="submitButton"
                     Text="Submit"
                     Command="{Binding SubmitCommand}" />
+
+
 
     </VerticalStackLayout>
 </ContentPage>

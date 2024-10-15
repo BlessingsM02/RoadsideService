@@ -44,7 +44,7 @@
                    Padding="15">
                 <VerticalStackLayout Spacing="15">
                     <sf:SfTextInputLayout 
-                        Hint="First Name:"
+                        Hint="Full Name:"
                         ContainerType="Outlined"
                         OutlineCornerRadius="10"
                         ContainerBackground="White"
@@ -58,20 +58,6 @@
                                FontSize="Medium"/>
                     </sf:SfTextInputLayout>
 
-                    <sf:SfTextInputLayout 
-                        Hint="Last Name:"
-                        ContainerType="Outlined"
-                        OutlineCornerRadius="10"
-                        ContainerBackground="White"
-                        HeightRequest="90"
-                        IsHintAlwaysFloated="True">
-                        <Entry Text="{Binding LastName}"
-                               PlaceholderColor="Gray"
-                               FontAttributes="Bold"
-                               IsReadOnly="{Binding IsReadOnly}"
-                               TextColor="#34495e"
-                               FontSize="Medium"/>
-                    </sf:SfTextInputLayout>
 
                     <sf:SfTextInputLayout 
                         Hint="Mobile Number:"

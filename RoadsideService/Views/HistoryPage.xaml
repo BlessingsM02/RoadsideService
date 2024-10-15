@@ -11,7 +11,7 @@
     </ContentPage.BindingContext>
 
     <StackLayout Padding="15" Spacing="10">
-        <Label Text="Requests History" FontSize="Large" HorizontalOptions="Center" FontAttributes="Bold" />
+        <Label Text="History" FontSize="Large" HorizontalOptions="Center" FontAttributes="Bold" />
 
         <Label Text="{Binding TotalAmount, StringFormat='Total Amount: ZMW {0}'}" 
                FontSize="Medium" HorizontalOptions="Center" />
@@ -21,7 +21,7 @@
             <Button Text="Completed" 
                     Command="{Binding CompletedCommand}" 
                     BackgroundColor="#4CAF50" 
-                    TextColor="White" 
+                    TextColor="White"
                     WidthRequest="120" 
                     CornerRadius="10" 
                     Padding="10" 

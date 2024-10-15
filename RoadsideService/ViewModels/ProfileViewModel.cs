@@ -1,6 +1,7 @@
 ﻿using Firebase.Database;
 using Firebase.Database.Query;
 using RoadsideService.Models;
+using System.Windows.Input;
 
 namespace RoadsideService.ViewModels
 {
@@ -93,8 +94,8 @@ namespace RoadsideService.ViewModels
             }
         }
 
-        public Command LoadUserProfileCommand { get; }
-        public Command ToggleEditModeCommand { get; }
+        public ICommand LoadUserProfileCommand { get; }
+        public ICommand ToggleEditModeCommand { get; }
 
         private async Task LoadUserProfileAsync()
         {
@@ -108,19 +109,24 @@ namespace RoadsideService.ViewModels
                         .Child("users")
                         .OnceAsync<Users>();
 
+                    // Find the user by mobile number
                     var user = users.FirstOrDefault(u => u.Object.MobileNumber == mobileNumber)?.Object;
 
                     if (user != null)
                     {
-                        FirstName = user.FirstName;
-                        LastName = user.LastName;
+                        // Store the UserId in preferences
+                        Preferences.Set("user_id", user.UserId);
+
+                        // Load user details into the view model
+                        FirstName = user.FullName;
                         MobileNumber = user.MobileNumber;
 
+                        // Load vehicle information
                         var vehicles = await _firebaseClient
                             .Child("vehicles")
                             .OnceAsync<Vehicle>();
 
-                        var vehicle = vehicles.FirstOrDefault(v => v.Object.UserId == mobileNumber)?.Object;
+                        var vehicle = vehicles.FirstOrDefault(v => v.Object.UserId == user.UserId.ToString())?.Object; // Use UserId instead of mobileNumber
 
                         if (vehicle != null)
                         {
@@ -141,7 +147,6 @@ namespace RoadsideService.ViewModels
                 {
                     // Handle exceptions, such as network errors
                     await Application.Current.MainPage.DisplayAlert("Error", "Unable to load user data. Please check your internet connection.", "OK");
-                    return;
                 }
             }
             else
@@ -180,18 +185,17 @@ namespace RoadsideService.ViewModels
 
                     if (user != null)
                     {
-                        user.FirstName = FirstName;
-                        user.LastName = LastName;
+                        user.FullName = FirstName;
 
                         await _firebaseClient
                             .Child("users")
-                            .Child(mobileNumber)
+                            .Child(user.UserId.ToString)
                             .PutAsync(user);
 
                         var vehicle = (await _firebaseClient
                             .Child("vehicles")
                             .OnceAsync<Vehicle>())
-                            .FirstOrDefault(v => v.Object.UserId == mobileNumber)?.Object;
+                            .FirstOrDefault(v => v.Object.UserId == user.UserId.ToString())?.Object; // Use UserId
 
                         if (vehicle != null)
                         {
@@ -200,7 +204,7 @@ namespace RoadsideService.ViewModels
 
                             await _firebaseClient
                                 .Child("vehicles")
-                                .Child(mobileNumber)
+                                .Child(vehicle.UserId) // Use vehicle.UserId
                                 .PutAsync(vehicle);
 
                             await Application.Current.MainPage.DisplayAlert("Success", "Profile updated successfully.", "OK");

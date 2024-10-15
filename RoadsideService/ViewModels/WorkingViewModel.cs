@@ -240,7 +240,7 @@ namespace RoadsideService.ViewModels
                         // Update the request status to "Accepted"
                         ownRequest.Object.Status = "Accepted";
                         ownRequest.Object.Date = DateTime.Now;
-                        ownRequest.Object.Amount = 100;
+                        ownRequest.Object.Amount = ownRequest.Object.Amount;
                         ownRequest.Object.ServiceProviderLatitude = location.Latitude;
                         ownRequest.Object.ServiceProviderLongitude = location.Longitude;
 
