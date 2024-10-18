@@ -63,7 +63,7 @@ public partial class RequestDetailsPage : ContentPage
 
                 var mobileNumber = Preferences.Get("mobile_number", string.Empty);
                 var serviceRequest = await _firebaseClient
-                    .Child("requests")
+                    .Child("request")
                     .OnceAsync<RequestData>();
 
                 var currentServiceRequest = serviceRequest.FirstOrDefault(u => u.Object.ServiceProviderId == mobileNumber);
@@ -74,19 +74,11 @@ public partial class RequestDetailsPage : ContentPage
                     currentServiceRequest.Object.ServiceProviderLongitude = location.Longitude;
 
                     await _firebaseClient
-                        .Child("requests")
+                        .Child("request")
                         .Child(currentServiceRequest.Key)
                         .PutAsync(currentServiceRequest.Object);
 
-                    // Update or add the user's current location pin on the map
-                    var userPin = new Pin
-                    {
-                        Label = "Your Location",
-                        Location = new Location(location.Latitude, location.Longitude),
-                        Type = PinType.Place
-                    };
-                    userMap.Pins.Clear();
-                    userMap.Pins.Add(userPin);
+                    
 
                     // Get the service provider's location and add a pin
                     var latitude = currentServiceRequest.Object.Latitude;
@@ -103,7 +95,7 @@ public partial class RequestDetailsPage : ContentPage
                         userMap.Pins.Add(servicePin);
 
                         // Draw the route between the two locations
-                        DrawRoute(_userLocation, _serviceProviderLocation);
+                        //DrawRoute(_userLocation, _serviceProviderLocation);
                     
                 }
             }

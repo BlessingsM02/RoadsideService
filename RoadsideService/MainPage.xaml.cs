@@ -35,7 +35,7 @@ namespace RoadsideService
         {
             var savedMobileNumber = Preferences.Get("mobile_number", string.Empty);
             var requests = await _firebaseClient
-                        .Child("requests")
+                        .Child("request")
                         .OnceAsync<dynamic>();
 
             foreach (var request in requests)

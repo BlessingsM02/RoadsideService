@@ -62,14 +62,14 @@ namespace RoadsideService.ViewModels
 
                 // Optionally update the request's status in the original "requests" table
                 var requestToUpdate = (await _firebaseClient
-                    .Child("requests")
+                    .Child("request")
                     .OnceAsync<RequestData>())
                     .FirstOrDefault(r => r.Object.ServiceProviderId == mobileNumber);
 
                 if (requestToUpdate != null)
                 {
                     await _firebaseClient
-                        .Child("requests")
+                        .Child("request")
                         .Child(requestToUpdate.Key)
                         .PutAsync(new RequestData
                         {
@@ -257,7 +257,7 @@ namespace RoadsideService.ViewModels
 
                 // Retrieve request details from the requests table
                 var requestDetails = await _firebaseClient
-                    .Child("requests")
+                    .Child("request")
                     .OnceAsync<RequestData>();
                 //retrieve user data
                 var specificUser = await _firebaseClient2
