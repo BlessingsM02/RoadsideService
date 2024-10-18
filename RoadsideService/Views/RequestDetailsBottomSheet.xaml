@@ -39,7 +39,7 @@
         <Label Text="{Binding VehicleDetails}" />
         <Label Text="Amount:"
                FontAttributes="Bold"/>
-        <Label Text="{Binding Amount}" />
+        <Label Text="{Binding Price}" />
         
         <Button Text="Complete Request"
                 TextColor="White"

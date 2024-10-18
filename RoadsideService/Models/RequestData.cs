@@ -14,7 +14,7 @@ namespace RoadsideService.Models
         public double Longitude { get; set; }
         public double ServiceProviderLatitude { get; set; }
         public double ServiceProviderLongitude { get; set; }
-        public double Amount { get; set; }
+        public double Price { get; set; }
         public string DriverId { get; set; }
         public string Status { get; set; }
         public string RatingId { get; set; }

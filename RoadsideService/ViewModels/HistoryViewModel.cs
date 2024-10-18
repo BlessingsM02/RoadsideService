@@ -61,7 +61,7 @@ namespace RoadsideService.ViewModels
                 foreach (var request in allRequests)
                 {
                     AllRequests.Add(request.Object);
-                    TotalAmount += request.Object.Amount; // Add to total amount
+                    TotalAmount += request.Object.Price; // Add to total amount
                 }
 
                 // Show completed requests by default

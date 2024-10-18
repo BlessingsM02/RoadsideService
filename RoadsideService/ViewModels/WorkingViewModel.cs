@@ -3,6 +3,7 @@ using Firebase.Database.Query;
 using RoadsideService.Models;
 using RoadsideService.Views;
 using System.Windows.Input;
+using System.Threading;
 
 namespace RoadsideService.ViewModels
 {
@@ -122,63 +123,103 @@ namespace RoadsideService.ViewModels
                     }
                 }
             }
+            catch (FeatureNotEnabledException)
+            {
+                await Application.Current.MainPage.DisplayAlert("Error", "Geolocation is not enabled. Please enable it.", "OK");
+            }
+            catch (PermissionException)
+            {
+                await Application.Current.MainPage.DisplayAlert("Error", "Geolocation permission is denied.", "OK");
+            }
             catch (Exception ex)
             {
-                // Handle exception
+                await Application.Current.MainPage.DisplayAlert("Error", "Failed to send working info.", "OK");
             }
         }
 
         private async Task<bool> SaveLocation(string mobileNumber)
         {
-            var users = await _firebaseClient
-                .Child("working")
-                .OnceAsync<Working>();
+            int retryCount = 0;
+            const int maxRetries = 3;
 
-            var user = users.FirstOrDefault(u => u.Object.Id == mobileNumber);
-            var newTask = new Working
+            while (retryCount < maxRetries)
             {
-                Id = mobileNumber,
-                Latitude = Latitude,
-                Longitude = Longitude,
-            };
+                try
+                {
+                    var users = await _firebaseClient.Child("working").OnceAsync<Working>();
+                    var user = users.FirstOrDefault(u => u.Object.Id == mobileNumber);
 
-            if (user != null)
-            {
-                // Update existing record
-                await _firebaseClient
-                    .Child("working")
-                    .Child(user.Key)
-                    .PutAsync(newTask);
+                    var newTask = new Working
+                    {
+                        Id = mobileNumber,
+                        Latitude = Latitude,
+                        Longitude = Longitude,
+                    };
+
+                    if (user != null)
+                    {
+                        await _firebaseClient.Child("working").Child(user.Key).PutAsync(newTask);
+                    }
+                    else
+                    {
+                        await _firebaseClient.Child("working").PostAsync(newTask);
+                    }
+                    return true;
+                }
+                catch (FirebaseException)
+                {
+                    retryCount++;
+                    if (retryCount == maxRetries)
+                    {
+                        await Application.Current.MainPage.DisplayAlert("Error", "Failed to save location to Firebase.", "OK");
+                        return false;
+                    }
+                    await Task.Delay(2000);
+                }
+                catch (Exception)
+                {
+                    await Application.Current.MainPage.DisplayAlert("Error", "An unexpected error occurred while saving location.", "OK");
+                    return false;
+                }
             }
-            else
-            {
-                // Create new record
-                await _firebaseClient
-                    .Child("working")
-                    .PostAsync(newTask);
-            }
-            return true;
+            return false;
         }
 
         private void StartTracking()
         {
+            if (IsTracking) return;
+
             _isTracking = true;
             CheckRequest();
             _cancellationTokenSource = new CancellationTokenSource();
             Task.Run(async () =>
             {
-                while (!_cancellationTokenSource.Token.IsCancellationRequested)
+                try
                 {
-                    await SendWorkingInfoAsync();
-                    await Task.Delay(TimeSpan.FromSeconds(5), _cancellationTokenSource.Token);
+                    while (!_cancellationTokenSource.Token.IsCancellationRequested)
+                    {
+                        await SendWorkingInfoAsync();
+                        await Task.Delay(TimeSpan.FromSeconds(5), _cancellationTokenSource.Token);
+                    }
+                }
+                catch (TaskCanceledException)
+                {
+                    // Task was canceled, safely exit
+                }
+                catch (Exception)
+                {
+                    await Application.Current.MainPage.DisplayAlert("Error", "Failed to track location.", "OK");
                 }
             }, _cancellationTokenSource.Token);
         }
 
         private void StopTracking()
         {
+            if (!_isTracking) return;
+
             _isTracking = false;
             _cancellationTokenSource?.Cancel();
+            _cancellationTokenSource?.Dispose();
             DeleteLocation();
         }
 
@@ -189,23 +230,17 @@ namespace RoadsideService.ViewModels
                 var mobileNumber = Preferences.Get("mobile_number", string.Empty);
                 if (!string.IsNullOrEmpty(mobileNumber))
                 {
-                    var users = await _firebaseClient
-                        .Child("working")
-                        .OnceAsync<Working>();
-
+                    var users = await _firebaseClient.Child("working").OnceAsync<Working>();
                     var user = users.FirstOrDefault(u => u.Object.Id == mobileNumber);
                     if (user != null)
                     {
-                        await _firebaseClient
-                            .Child("working")
-                            .Child(user.Key)
-                            .DeleteAsync();
+                        await _firebaseClient.Child("working").Child(user.Key).DeleteAsync();
                     }
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                // Handle exception
+                await Application.Current.MainPage.DisplayAlert("Error", "Failed to delete location data.", "OK");
             }
         }
 
@@ -214,18 +249,11 @@ namespace RoadsideService.ViewModels
             try
             {
                 var mobileNumber = Preferences.Get("mobile_number", string.Empty);
-
-                // Fetch all requests from Firebase
-                var allRequest = await _firebaseClient
-                    .Child("ClickedMobileNumbers")
-                    .OnceAsync<RequestData>();
-
-                // Find the request specific to this service provider
+                var allRequest = await _firebaseClient.Child("request").OnceAsync<RequestData>();
                 var ownRequest = allRequest.FirstOrDefault(c => c.Object.ServiceProviderId == mobileNumber);
 
                 if (ownRequest != null && ownRequest.Object.Status == "Pending")
                 {
-                    // Show a dialog box to the user
                     bool acceptRequest = await Application.Current.MainPage.DisplayAlert(
                         "New Request",
                         $"You have a new request from driver {ownRequest.Object.DriverId} at location ({ownRequest.Object.Latitude}, {ownRequest.Object.Longitude}). Do you want to accept it?",
@@ -237,51 +265,30 @@ namespace RoadsideService.ViewModels
                         var request = new GeolocationRequest(GeolocationAccuracy.Medium, TimeSpan.FromSeconds(10));
                         var location = await Geolocation.GetLocationAsync(request);
 
-                        // Update the request status to "Accepted"
                         ownRequest.Object.Status = "Accepted";
                         ownRequest.Object.Date = DateTime.Now;
-                        ownRequest.Object.Amount = ownRequest.Object.Amount;
+                        ownRequest.Object.Price = ownRequest.Object.Price;
                         ownRequest.Object.ServiceProviderLatitude = location.Latitude;
                         ownRequest.Object.ServiceProviderLongitude = location.Longitude;
 
-                        await _firebaseClient
-                            .Child("ClickedMobileNumbers")
-                            .Child(ownRequest.Key)
-                            .PutAsync(ownRequest.Object);
-
-                        // Save the accepted request to the new "requests" table
+                        await _firebaseClient.Child("ClickedMobileNumbers").Child(ownRequest.Key).PutAsync(ownRequest.Object);
                         await SaveRequestToNewTable(ownRequest.Object);
-                        await _firebaseClient
-                            .Child("ClickedMobileNumbers")
-                            .Child(ownRequest.Key)
-                            .DeleteAsync();
+                        await _firebaseClient.Child("ClickedMobileNumbers").Child(ownRequest.Key).DeleteAsync();
 
                         StopTracking();
-
                         await Application.Current.MainPage.DisplayAlert("Request Accepted", "You have accepted the request.", "OK");
                         await Shell.Current.GoToAsync($"//{nameof(RequestDetailsPage)}");
                     }
                     else
                     {
-                        // Optionally delete or update the request status
-                        await _firebaseClient
-                            .Child("ClickedMobileNumbers")
-                            .Child(ownRequest.Key)
-                            .DeleteAsync();
-
-                        // Save the declined request to the new "requests" table with status "Declined"
-                        //ownRequest.Object.Status = "Declined";
-                        //await SaveRequestToNewTable(ownRequest.Object);
-                        
-
+                        await _firebaseClient.Child("ClickedMobileNumbers").Child(ownRequest.Key).DeleteAsync();
                         await Application.Current.MainPage.DisplayAlert("Request Declined", "You have declined the request.", "OK");
                     }
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                // Handle exceptions
-                await Application.Current.MainPage.DisplayAlert("Error", "Failed to check requests", "OK");
+                await Application.Current.MainPage.DisplayAlert("Error", "Failed to check requests.", "OK");
             }
         }
 
@@ -289,15 +296,11 @@ namespace RoadsideService.ViewModels
         {
             try
             {
-                // Save the request to the new "requests" table
-                await _firebaseClient
-                    .Child("requests")
-                    .PostAsync(requestData);
+                await _firebaseClient.Child("requests").PostAsync(requestData);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                // Handle exceptions during saving
-                await Application.Current.MainPage.DisplayAlert("Info", "Something went wrong", "OK");
+                await Application.Current.MainPage.DisplayAlert("Info", "Something went wrong while saving the request.", "OK");
             }
         }
     }

@@ -15,7 +15,7 @@ namespace RoadsideService.ViewModels
         private double _longitude;
         private double _serviceProviderLatitude;
         private double _serviceProviderLongitude;
-        private double _amount;
+        private double _price;
         private string _driverId;
         private string _status;
         private string _ratingId;
@@ -53,7 +53,7 @@ namespace RoadsideService.ViewModels
                         Longitude = Longitude,
                         ServiceProviderLatitude = ServiceProviderLatitude,
                         ServiceProviderLongitude = ServiceProviderLongitude,
-                        Amount = Amount,
+                        Amount = Price,
                         DriverId = DriverId,
                         Status = "Completed",
                         RatingId = RatingId,
@@ -78,7 +78,7 @@ namespace RoadsideService.ViewModels
                             Longitude = Longitude,
                             ServiceProviderLatitude = ServiceProviderLatitude,
                             ServiceProviderLongitude = ServiceProviderLongitude,
-                            Amount = Amount,
+                            Price = Price,
                             DriverId = DriverId,
                             Status = "Completed",
                             RatingId = RatingId,
@@ -90,7 +90,7 @@ namespace RoadsideService.ViewModels
                 //await SendNotificationAsync(DriverId, "Your request has been completed!");
 
                 // Show a dialog with the total price (Amount)
-                await Application.Current.MainPage.DisplayAlert("Request Completed", $"The total price is: K{Amount}", "OK");
+                await Application.Current.MainPage.DisplayAlert("Request Completed", $"The total price is: K{Price}", "OK");
                 await Shell.Current.GoToAsync($"//{nameof(HomePage)}");
             }
             catch (Exception ex)
@@ -177,12 +177,12 @@ namespace RoadsideService.ViewModels
             }
         }
 
-        public double Amount
+        public double Price
         {
-            get => _amount;
+            get => _price;
             set
             {
-                _amount = value;
+                _price = value;
                 OnPropertyChanged();
             }
         }
@@ -274,7 +274,7 @@ namespace RoadsideService.ViewModels
                     Longitude = requestData.Longitude;
                     ServiceProviderLatitude = requestData.ServiceProviderLatitude;
                     ServiceProviderLongitude = requestData.ServiceProviderLongitude;
-                    Amount = requestData.Amount;
+                    Price = requestData.Price;
                     DriverId = requestData.DriverId;
                     Status = requestData.Status;
                     RatingId = requestData.RatingId;
