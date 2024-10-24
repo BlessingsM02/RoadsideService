@@ -4,6 +4,7 @@ using RoadsideService.Models;
 using RoadsideService.Views;
 using System.Windows.Input;
 using System.Threading;
+using Microsoft.Maui.Devices.Sensors;
 
 namespace RoadsideService.ViewModels
 {
@@ -282,6 +283,13 @@ namespace RoadsideService.ViewModels
                     else
                     {
                         //await _firebaseClient.Child("request").Child(ownRequest.Key).DeleteAsync();
+                        ownRequest.Object.Status = "Declined";
+                        //ownRequest.Object.Date = DateTime.Now;
+                        //ownRequest.Object.Price = ownRequest.Object.Price;
+                        //ownRequest.Object.ServiceProviderLatitude = location.Latitude;
+                        //ownRequest.Object.ServiceProviderLongitude = location.Longitude;
+
+                        await _firebaseClient.Child("request").Child(ownRequest.Key).PutAsync(ownRequest.Object);
                         await Application.Current.MainPage.DisplayAlert("Request Declined", "You have declined the request.", "OK");
                     }
                 }
