@@ -272,7 +272,7 @@ namespace RoadsideService.ViewModels
                         ownRequest.Object.ServiceProviderLongitude = location.Longitude;
 
                         await _firebaseClient.Child("request").Child(ownRequest.Key).PutAsync(ownRequest.Object);
-                        await SaveRequestToNewTable(ownRequest.Object);
+                        //await SaveRequestToNewTable(ownRequest.Object);
                         //await _firebaseClient.Child("request").Child(ownRequest.Key).DeleteAsync();
 
                         StopTracking();
@@ -281,7 +281,7 @@ namespace RoadsideService.ViewModels
                     }
                     else
                     {
-                        await _firebaseClient.Child("request").Child(ownRequest.Key).DeleteAsync();
+                        //await _firebaseClient.Child("request").Child(ownRequest.Key).DeleteAsync();
                         await Application.Current.MainPage.DisplayAlert("Request Declined", "You have declined the request.", "OK");
                     }
                 }

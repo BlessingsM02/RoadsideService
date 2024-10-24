@@ -46,7 +46,7 @@
                             <StackLayout>
                                 <Label Text="{Binding DriverId}" FontAttributes="Bold" FontSize="Medium" />
                                 <Label Text="{Binding Status}" FontSize="Small" />
-                                <Label Text="{Binding Amount, StringFormat='Amount: ZMW {0}'}" FontSize="Small" />
+                                <Label Text="{Binding Price, StringFormat='Amount: ZMW {0}'}" FontSize="Small" />
                                 <Label Text="{Binding Date, StringFormat='Date: {0:MM/dd/yyyy HH:mm}'}" FontSize="Small" />
                             </StackLayout>
                         </Frame>

@@ -1,5 +1,6 @@
 ﻿using Firebase.Database;
 using Firebase.Database.Query;
+using Mopups.Services;
 using RoadsideService.Models;
 using RoadsideService.Views;
 using System.Windows.Input;
@@ -53,7 +54,7 @@ namespace RoadsideService.ViewModels
                         Longitude = Longitude,
                         ServiceProviderLatitude = ServiceProviderLatitude,
                         ServiceProviderLongitude = ServiceProviderLongitude,
-                        Amount = Price,
+                        Price = Price,
                         DriverId = DriverId,
                         Status = "Completed",
                         RatingId = RatingId,
@@ -91,7 +92,9 @@ namespace RoadsideService.ViewModels
 
                 // Show a dialog with the total price (Amount)
                 await Application.Current.MainPage.DisplayAlert("Request Completed", $"The total price is: K{Price}", "OK");
-                await Shell.Current.GoToAsync($"//{nameof(HomePage)}");
+                await MopupService.Instance.PopAsync();
+                return;
+                //await Shell.Current.GoToAsync($"//{nameof(HomePage)}");
             }
             catch (Exception ex)
             {
@@ -288,7 +291,8 @@ namespace RoadsideService.ViewModels
                 }
                 else
                 {
-                    await Application.Current.MainPage.DisplayAlert("Error", "No matching request found.", "OK");
+                    await Application.Current.MainPage.DisplayAlert("Alert", "Something went wrong, try restarting", "OK");
+                    return;
                 }
             }
             catch (Exception ex)

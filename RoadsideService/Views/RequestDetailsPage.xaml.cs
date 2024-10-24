@@ -6,7 +6,6 @@ using Mopups.Services;
 using RoadsideService.Models;
 using RoadsideService.ViewModels;
 
-
 namespace RoadsideService.Views;
 public partial class RequestDetailsPage : ContentPage
 {
@@ -38,10 +37,25 @@ public partial class RequestDetailsPage : ContentPage
 
     private async void StartLocationUpdates()
     {
-        while (!_cancellationTokenSource.Token.IsCancellationRequested)
+        try
         {
-            await UpdateLocationAsync();
-            await Task.Delay(TimeSpan.FromSeconds(5), _cancellationTokenSource.Token);
+            while (!_cancellationTokenSource.Token.IsCancellationRequested)
+            {
+                // Update location and check request status
+                await UpdateLocationAsync();
+
+                // Wait 5 seconds between each update
+                await Task.Delay(TimeSpan.FromSeconds(5), _cancellationTokenSource.Token);
+            }
+        }
+        catch (TaskCanceledException)
+        {
+            // Handle task cancellation (e.g., when the page is closed or request is complete)
+        }
+        catch (Exception ex)
+        {
+            // Handle any other errors
+            await DisplayAlert("Error", $"Something went wrong: {ex.Message}", "OK");
         }
     }
 
@@ -57,11 +71,10 @@ public partial class RequestDetailsPage : ContentPage
             {
                 _userLocation = location;
 
-                //Update user's location on the map
-                //userMap.MoveToRegion(MapSpan.FromCenterAndRadius(location, Distance.FromMeters(200)));
-                //Update the request table with the current location
-
+                // Fetch mobile number from preferences
                 var mobileNumber = Preferences.Get("mobile_number", string.Empty);
+
+                // Fetch the current request associated with the service provider
                 var serviceRequest = await _firebaseClient
                     .Child("request")
                     .OnceAsync<RequestData>();
@@ -70,6 +83,17 @@ public partial class RequestDetailsPage : ContentPage
 
                 if (currentServiceRequest != null)
                 {
+                    // Check if the request is completed or canceled
+                    if (currentServiceRequest.Object.Status == "Completed" || currentServiceRequest.Object.Status == "Canceled")
+                    {
+                        await DisplayAlert("Request Status", "This request has already been completed.", "OK");
+                        _cancellationTokenSource?.Cancel(); // Stop further location updates
+                        await MopupService.Instance.PopAsync();
+                        await Shell.Current.GoToAsync($"//{nameof(HomePage)}"); 
+                        return; // Exit early
+                    }
+
+                    // Update service provider's location in Firebase
                     currentServiceRequest.Object.ServiceProviderLatitude = location.Latitude;
                     currentServiceRequest.Object.ServiceProviderLongitude = location.Longitude;
 
@@ -78,25 +102,32 @@ public partial class RequestDetailsPage : ContentPage
                         .Child(currentServiceRequest.Key)
                         .PutAsync(currentServiceRequest.Object);
 
-                    
-
-                    // Get the service provider's location and add a pin
+                    // Get the service provider's location and update the map with a pin
                     var latitude = currentServiceRequest.Object.Latitude;
                     var longitude = currentServiceRequest.Object.Longitude;
 
-                    
-                        _serviceProviderLocation = new Location(latitude, longitude);
-                        var servicePin = new Pin
-                        {
-                            Label = "Driver Location",
-                            Location = _serviceProviderLocation,
-                            Type = PinType.Place
-                        };
-                        userMap.Pins.Add(servicePin);
+                    _serviceProviderLocation = new Location(latitude, longitude);
+                    var servicePin = new Pin
+                    {
+                        Label = "Driver Location",
+                        Location = _serviceProviderLocation,
+                        Type = PinType.Place
+                    };
 
-                        // Draw the route between the two locations
-                        //DrawRoute(_userLocation, _serviceProviderLocation);
-                    
+                    // Clear existing pins and add the updated pin
+                    userMap.Pins.Clear();
+                    userMap.Pins.Add(servicePin);
+
+                    // Optionally, draw the route between the two locations
+                    //DrawRoute(_userLocation, _serviceProviderLocation);
+                }
+                else
+                {
+                    await DisplayAlert("Alert", "Request has been Canceled.", "OK");
+                    _cancellationTokenSource?.Cancel();
+                    await MopupService.Instance.PopAsync();
+                    await Shell.Current.GoToAsync($"//{nameof(HomePage)}");
+                    return;// Stop further updates if the request is not found
                 }
             }
             else
@@ -132,4 +163,3 @@ public partial class RequestDetailsPage : ContentPage
         await MopupService.Instance.PushAsync(bottomSheet);
     }
 }
-
