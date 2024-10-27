@@ -280,7 +280,7 @@ namespace RoadsideService.ViewModels
                         await Application.Current.MainPage.DisplayAlert("Request Accepted", "You have accepted the request.", "OK");
                         await Shell.Current.GoToAsync($"//{nameof(RequestDetailsPage)}");
                     }
-                    else
+                    if(!acceptRequest)
                     {
                         //await _firebaseClient.Child("request").Child(ownRequest.Key).DeleteAsync();
                         ownRequest.Object.Status = "Declined";
