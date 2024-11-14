@@ -13,7 +13,7 @@
     <StackLayout Padding="15" Spacing="10">
         <Label Text="History" FontSize="Large" HorizontalOptions="Center" FontAttributes="Bold" />
 
-        <Label Text="{Binding TotalAmount, StringFormat='Total Amount: ZMW {0}'}" 
+        <Label Text="{Binding TotalAmount, StringFormat='Total Amount: ZMW {0:F0}'}" 
                FontSize="Medium" HorizontalOptions="Center" />
 
         <!-- Button Stack with Styles -->
@@ -44,7 +44,8 @@
                     <DataTemplate>
                         <Frame BorderColor="Gray" Padding="10" Margin="5" CornerRadius="10" HasShadow="True">
                             <StackLayout>
-                                <Label Text="{Binding DriverId}" FontAttributes="Bold" FontSize="Medium" />
+                                <Label Text="{Binding ServiceProviderName}"  FontAttributes="Bold" FontSize="Medium" />
+                                <Label Text="{Binding DriverId}" FontSize="Medium" />
                                 <Label Text="{Binding Status}" FontSize="Small" />
                                 <Label Text="{Binding Price, StringFormat='Amount: ZMW {0}'}" FontSize="Small" />
                                 <Label Text="{Binding Date, StringFormat='Date: {0:MM/dd/yyyy HH:mm}'}" FontSize="Small" />

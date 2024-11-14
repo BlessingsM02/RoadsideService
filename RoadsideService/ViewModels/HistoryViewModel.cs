@@ -11,6 +11,7 @@ namespace RoadsideService.ViewModels
     internal class HistoryViewModel : INotifyPropertyChanged
     {
         private readonly FirebaseClient _firebaseClient;
+        private readonly FirebaseClient _firebaseClient2;
         public ObservableCollection<RequestData> AllRequests { get; private set; }
         public ObservableCollection<RequestData> FilteredRequests { get; private set; }
         public bool IsBusy { get; private set; }
@@ -33,6 +34,7 @@ namespace RoadsideService.ViewModels
         public HistoryViewModel()
         {
             _firebaseClient = new FirebaseClient("https://roadside-service-f65db-default-rtdb.firebaseio.com/");
+            _firebaseClient2 = new FirebaseClient("https://roadside1-1ffd7-default-rtdb.firebaseio.com/");
             AllRequests = new ObservableCollection<RequestData>();
             FilteredRequests = new ObservableCollection<RequestData>();
 
@@ -58,6 +60,27 @@ namespace RoadsideService.ViewModels
                 TotalAmount = 0; // Reset total amount before calculation
 
                 // Add all requests to the collection
+                foreach (var request in allRequests)
+                {
+                    if (request.Object.ServiceProviderId == mobileNumber)
+                    {
+                        // Get the service provider's name using the DriverId (mobile number)
+                        var users = await _firebaseClient2
+                                                    .Child("users")
+                                                    .OnceAsync<Users>();
+
+                        var user = users.FirstOrDefault(v => v.Object.MobileNumber == request.Object.DriverId)?.Object;
+                        if (user != null)
+                        {
+                            // Store the service provider's name in the request data
+                            request.Object.ServiceProviderName = user.FullName;
+                        }
+
+                        // Add the request to the collection and update the total amount
+                        AllRequests.Add(request.Object);
+                        TotalAmount += request.Object.Price;
+                    }
+                }
                 foreach (var request in allRequests)
                 {
                     AllRequests.Add(request.Object);
