@@ -12,6 +12,7 @@ namespace RoadsideService.ViewModels
         private string _vehicleDescription;
         private string _plateNumber;
         private string _mobileNumber;
+        private bool _isLoading;
         private bool _isReadOnly = true;
         private string _editButtonText = "Edit Profile";
         private readonly FirebaseClient _firebaseClient;
@@ -22,8 +23,18 @@ namespace RoadsideService.ViewModels
             LoadUserProfileCommand = new Command(async () => await LoadUserProfileAsync());
             ToggleEditModeCommand = new Command(ToggleEditMode);
             LoadUserProfileCommand.Execute(null);
+            RefreshCommand = new Command(async () => await LoadUserProfileAsync());
         }
 
+        public bool IsLoading
+        {
+            get => _isLoading;
+            set
+            {
+                _isLoading = value;
+                OnPropertyChanged();
+            }
+        }
         public string FirstName
         {
             get => _firstName;
@@ -96,38 +107,33 @@ namespace RoadsideService.ViewModels
 
         public ICommand LoadUserProfileCommand { get; }
         public ICommand ToggleEditModeCommand { get; }
+        public ICommand RefreshCommand { get; }
 
         private async Task LoadUserProfileAsync()
         {
-            var mobileNumber = Preferences.Get("mobile_number", string.Empty);
-
-            if (!string.IsNullOrEmpty(mobileNumber))
+            IsLoading = true; // Start loading indicator
+            try
             {
-                try
+                var mobileNumber = Preferences.Get("mobile_number", string.Empty);
+
+                if (!string.IsNullOrEmpty(mobileNumber))
                 {
                     var users = await _firebaseClient
                         .Child("users")
                         .OnceAsync<Users>();
 
-                    // Find the user by mobile number
                     var user = users.FirstOrDefault(u => u.Object.MobileNumber == mobileNumber)?.Object;
-
                     if (user != null)
                     {
-                        // Store the UserId in preferences
                         Preferences.Set("user_id", user.UserId);
-
-                        // Load user details into the view model
                         FirstName = user.FullName;
                         MobileNumber = user.MobileNumber;
 
-                        // Load vehicle information
                         var vehicles = await _firebaseClient
                             .Child("vehicles")
                             .OnceAsync<Vehicle>();
 
-                        var vehicle = vehicles.FirstOrDefault(v => v.Object.UserId == user.UserId.ToString())?.Object; // Use UserId instead of mobileNumber
-
+                        var vehicle = vehicles.FirstOrDefault(v => v.Object.UserId == user.UserId.ToString())?.Object;
                         if (vehicle != null)
                         {
                             VehicleDescription = vehicle.VehicleDescription;
@@ -143,17 +149,21 @@ namespace RoadsideService.ViewModels
                         await Application.Current.MainPage.DisplayAlert("Error", "User not found.", "OK");
                     }
                 }
-                catch (Exception ex)
+                else
                 {
-                    // Handle exceptions, such as network errors
-                    await Application.Current.MainPage.DisplayAlert("Error", "Unable to load user data. Please check your internet connection.", "OK");
+                    await Application.Current.MainPage.DisplayAlert("Error", "Try Logging in again", "OK");
                 }
             }
-            else
+            catch (Exception)
             {
-                await Application.Current.MainPage.DisplayAlert("Error", "Mobile number not found in preferences.", "OK");
+                await Application.Current.MainPage.DisplayAlert("Error", "Unable to load user data. Please check your internet connection.", "OK");
+            }
+            finally
+            {
+                IsLoading = false; // End loading indicator
             }
         }
+
 
         private void ToggleEditMode()
         {
