@@ -87,7 +87,7 @@ namespace RoadsideService.ViewModels
 
         public ICommand ToggleTrackingCommand { get; }
 
-        private void ToggleTracking()
+        private async void ToggleTracking()
         {
             if (IsTracking)
             {
@@ -97,11 +97,45 @@ namespace RoadsideService.ViewModels
             }
             else
             {
+                bool hasActiveRequests = await HasActiveRequests();
+                if (hasActiveRequests)
+                {
+                    await Application.Current.MainPage.DisplayAlert(
+                        "Active Request",
+                        "You already have an active request. Complete it before starting work.",
+                        "OK");
+                    await Shell.Current.GoToAsync($"//{nameof(RequestDetailsPage)}");
+                    
+                }
+
                 StartTracking();
                 ToggleTrackingButtonText = "Stop Working";
                 TrackingButtonColor = Colors.Red;
             }
         }
+
+        private async Task<bool> HasActiveRequests()
+        {
+            try
+            {
+                var mobileNumber = Preferences.Get("mobile_number", string.Empty);
+                if (string.IsNullOrEmpty(mobileNumber))
+                {
+                    return false; // No mobile number means no active requests for this user.
+                }
+
+                var allRequests = await _firebaseClient.Child("request").OnceAsync<RequestData>();
+                return allRequests.Any(request =>
+                    request.Object.ServiceProviderId == mobileNumber &&
+                     request.Object.Status == "Accepted");
+            }
+            catch (Exception)
+            {
+                await Application.Current.MainPage.DisplayAlert("Error", "Something went wrong", "OK");
+                return false;
+            }
+        }
+
 
         private async Task SendWorkingInfoAsync()
         {

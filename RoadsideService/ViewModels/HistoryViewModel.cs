@@ -92,7 +92,7 @@ namespace RoadsideService.ViewModels
             }
             catch (Exception ex)
             {
-                await Application.Current.MainPage.DisplayAlert("Error", $"Failed to load requests: {ex.Message}", "OK");
+                await Application.Current.MainPage.DisplayAlert("Error", $"Something went wrong. Check your internet connection", "OK");
             }
             finally
             {
