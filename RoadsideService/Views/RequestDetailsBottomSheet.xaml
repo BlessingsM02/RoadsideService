@@ -94,6 +94,7 @@
                         CornerRadius="25"
                         HeightRequest="50"
                         FontSize="16"
+                        Command="{Binding CompleteRequestCommand}"
                         VerticalOptions="EndAndExpand">
                     <Button.Background>
                         <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">

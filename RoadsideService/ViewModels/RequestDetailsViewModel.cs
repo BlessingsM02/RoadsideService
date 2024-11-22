@@ -92,7 +92,7 @@ namespace RoadsideService.ViewModels
 
                 // Show a dialog with the total price (Amount)
                 await Application.Current.MainPage.DisplayAlert("Request Completed", $"The total price is: K{Price}", "OK");
-                await MopupService.Instance.PopAsync();
+                //await MopupService.Instance.PopAsync();
                 return;
                 //await Shell.Current.GoToAsync($"//{nameof(HomePage)}");
             }
