@@ -88,7 +88,7 @@ public partial class RequestDetailsPage : ContentPage
                     {
                         await DisplayAlert("Request Status", "This request has already been completed.", "OK");
                         _cancellationTokenSource?.Cancel(); // Stop further location updates
-                        await MopupService.Instance.PopAsync();
+                        //await MopupService.Instance.PopAsync();
                         await Shell.Current.GoToAsync($"//{nameof(HomePage)}"); 
                         return; // Exit early
                     }
