@@ -5,6 +5,7 @@ using RoadsideService.Views;
 using System.Windows.Input;
 using System.Threading;
 using Microsoft.Maui.Devices.Sensors;
+using Plugin.LocalNotification;
 
 namespace RoadsideService.ViewModels
 {
@@ -206,7 +207,7 @@ namespace RoadsideService.ViewModels
                     retryCount++;
                     if (retryCount == maxRetries)
                     {
-                        await Application.Current.MainPage.DisplayAlert("Error", "Failed to save location to Firebase.", "OK");
+                        await Application.Current.MainPage.DisplayAlert("Error", "Something went wrong with the location.", "OK");
                         return false;
                     }
                     await Task.Delay(2000);
@@ -278,7 +279,18 @@ namespace RoadsideService.ViewModels
                 await Application.Current.MainPage.DisplayAlert("Error", "Failed to delete location data.", "OK");
             }
         }
+        private async Task ShowNotification(string title, string description)
+        {
+            var tes = new NotificationRequest
+            {
+                NotificationId = 114,
+                Title = title,
+                Description = description,
+                BadgeNumber = 42,
 
+            };
+            await LocalNotificationCenter.Current.Show(tes);
+        }
         private async void CheckRequest()
         {
             try
@@ -289,9 +301,10 @@ namespace RoadsideService.ViewModels
 
                 if (ownRequest != null && ownRequest.Object.Status == "Pending")
                 {
+                    await ShowNotification("New Request", $"You have a new request from {ownRequest.Object.DriverId}");
                     bool acceptRequest = await Application.Current.MainPage.DisplayAlert(
                         "New Request",
-                        $"You have a new request from driver {ownRequest.Object.DriverId} at location ({ownRequest.Object.Latitude}, {ownRequest.Object.Longitude}). Do you want to accept it?",
+                        $"You have a new request from driver {ownRequest.Object.DriverId}. Do you want to accept it?",
                         "Yes",
                         "No");
 
@@ -307,6 +320,7 @@ namespace RoadsideService.ViewModels
                         ownRequest.Object.ServiceProviderLongitude = location.Longitude;
 
                         await _firebaseClient.Child("request").Child(ownRequest.Key).PutAsync(ownRequest.Object);
+
                         //await SaveRequestToNewTable(ownRequest.Object);
                         //await _firebaseClient.Child("request").Child(ownRequest.Key).DeleteAsync();
 
@@ -316,13 +330,8 @@ namespace RoadsideService.ViewModels
                     }
                     if(!acceptRequest)
                     {
-                        //await _firebaseClient.Child("request").Child(ownRequest.Key).DeleteAsync();
+                      
                         ownRequest.Object.Status = "Declined";
-                        //ownRequest.Object.Date = DateTime.Now;
-                        //ownRequest.Object.Price = ownRequest.Object.Price;
-                        //ownRequest.Object.ServiceProviderLatitude = location.Latitude;
-                        //ownRequest.Object.ServiceProviderLongitude = location.Longitude;
-
                         await _firebaseClient.Child("request").Child(ownRequest.Key).PutAsync(ownRequest.Object);
                         await Application.Current.MainPage.DisplayAlert("Request Declined", "You have declined the request.", "OK");
                     }

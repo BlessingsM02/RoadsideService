@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
 using Mopups.Hosting;
+using Plugin.LocalNotification;
 using RoadsideService.Services;
 using Syncfusion.Maui.Core.Hosting;
 
@@ -14,6 +15,7 @@ namespace RoadsideService
                 .UseMauiApp<App>()
                 .UseMauiMaps()
                 .ConfigureSyncfusionCore()
+                .UseLocalNotification()
                 .ConfigureMopups()
                 .ConfigureFonts(fonts =>
                 {

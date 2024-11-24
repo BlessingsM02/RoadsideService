@@ -3,6 +3,7 @@ using Firebase.Database.Query;
 using Microsoft.Maui.Controls.Maps;
 using Microsoft.Maui.Maps;
 using Mopups.Services;
+using Plugin.LocalNotification;
 using RoadsideService.Models;
 using RoadsideService.ViewModels;
 
@@ -123,10 +124,11 @@ public partial class RequestDetailsPage : ContentPage
                 }
                 else
                 {
+                    await ShowNotification("Alert", "Service has been cancled");
                     await DisplayAlert("Alert", "Request has been Canceled.", "OK");
                     _cancellationTokenSource?.Cancel();
-                    await MopupService.Instance.PopAsync();
                     await Shell.Current.GoToAsync($"//{nameof(HomePage)}");
+                    await MopupService.Instance.PopAsync();
                     return;// Stop further updates if the request is not found
                 }
             }
@@ -137,8 +139,20 @@ public partial class RequestDetailsPage : ContentPage
         }
         catch (Exception ex)
         {
-            await DisplayAlert("Error", $"Something went wrong: {ex.Message}", "OK");
+            //await DisplayAlert("Error", "Something went wrong", "OK");
         }
+    }
+    private async Task ShowNotification(string title, string description)
+    {
+        var tes = new NotificationRequest
+        {
+            NotificationId = 113,
+            Title = title,
+            Description = description,
+            BadgeNumber = 42,
+
+        };
+        await LocalNotificationCenter.Current.Show(tes);
     }
 
     private void DrawRoute(Location startLocation, Location endLocation)

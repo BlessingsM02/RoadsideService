@@ -98,24 +98,10 @@ namespace RoadsideService.ViewModels
             }
             catch (Exception ex)
             {
-                await Application.Current.MainPage.DisplayAlert("Error", $"Failed to complete request: {ex.Message}", "OK");
+                await Application.Current.MainPage.DisplayAlert("Error", $"Failed to complete request", "OK");
             }
         }
 
-
-        private async Task SendNotificationAsync(string recipientId, string message)
-        {
-            // Logic to send a notification to another user/application
-            // For example, you might use Firebase Cloud Messaging (FCM)
-            await _firebaseClient
-                .Child("notifications")
-                .PostAsync(new
-                {
-                    RecipientId = recipientId,
-                    Message = message,
-                    Timestamp = DateTime.Now
-                });
-        }
         private void OpenDialer(string phoneNumber)
         {
             if (!string.IsNullOrWhiteSpace(phoneNumber))
@@ -291,13 +277,15 @@ namespace RoadsideService.ViewModels
                 }
                 else
                 {
-                    await Application.Current.MainPage.DisplayAlert("Alert", "Something went wrong, try restarting", "OK");
+                    await Application.Current.MainPage.DisplayAlert("Alert", "Something went wrong, try restarting the application", "OK");
+                    await Shell.Current.GoToAsync($"//{nameof(HomePage)}");
+
                     return;
                 }
             }
             catch (Exception ex)
             {
-                await Application.Current.MainPage.DisplayAlert("Error", $"Failed to load request details: {ex.Message}", "OK");
+                await Application.Current.MainPage.DisplayAlert("Error", "Failed to load request details", "OK");
             }
         }
 
@@ -323,7 +311,7 @@ namespace RoadsideService.ViewModels
             }
             catch (Exception ex)
             {
-                await Application.Current.MainPage.DisplayAlert("Error", $"Failed to load driver name: {ex.Message}", "OK");
+                await Application.Current.MainPage.DisplayAlert("Error", $"Failed to load driver name", "OK");
             }
         }
 
@@ -363,7 +351,7 @@ namespace RoadsideService.ViewModels
             }
             catch (Exception ex)
             {
-                await Application.Current.MainPage.DisplayAlert("Error", $"Failed to load vehicle details: {ex.Message}", "OK");
+                await Application.Current.MainPage.DisplayAlert("Error", "Failed to load vehicle details", "OK");
             }
         }
 
