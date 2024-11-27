@@ -15,6 +15,7 @@ namespace RoadsideService.ViewModels
         private bool _isLoading;
         private bool _isReadOnly = true;
         private string _editButtonText = "Edit Profile";
+        private string _averageRating;
         private readonly FirebaseClient _firebaseClient;
 
         public ProfileViewModel()
@@ -32,6 +33,16 @@ namespace RoadsideService.ViewModels
             set
             {
                 _isLoading = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public string AverageRating
+        {
+            get => _averageRating;
+            set
+            {
+                _averageRating = value;
                 OnPropertyChanged();
             }
         }
@@ -112,9 +123,29 @@ namespace RoadsideService.ViewModels
         private async Task LoadUserProfileAsync()
         {
             IsLoading = true; // Start loading indicator
+
             try
             {
                 var mobileNumber = Preferences.Get("mobile_number", string.Empty);
+
+                if (!string.IsNullOrEmpty(mobileNumber))
+                {
+                    // Fetch average rating
+                    await CalculateAverageRatingAsync(mobileNumber);
+                }
+                else
+                {
+                    await Application.Current.MainPage.DisplayAlert("Error", "Try Logging in again", "OK");
+                }
+            }
+            catch (Exception)
+            {
+                await Application.Current.MainPage.DisplayAlert("Error", "Unable to load profile data. Please check your internet connection.", "OK");
+            }
+            try
+            {
+                var mobileNumber = Preferences.Get("mobile_number", string.Empty);
+
 
                 if (!string.IsNullOrEmpty(mobileNumber))
                 {
@@ -165,6 +196,37 @@ namespace RoadsideService.ViewModels
         }
 
 
+        private async Task CalculateAverageRatingAsync(string mobileNumber)
+        {
+            try
+            {
+                // Fetch all ratings for the user
+                var ratings = await _firebaseClient
+                    .Child("ratings")
+                    .OnceAsync<Rating>();
+
+                // Filter ratings by mobile number
+                var userRatings = ratings
+                    .Where(r => r.Object.ServiceProviderId == mobileNumber)
+                    .Select(r => r.Object.RatingValue)
+                    .ToList();
+
+                // Calculate average
+                if (userRatings.Any())
+                {
+                    var average = userRatings.Average();
+                    AverageRating = average.ToString("0.0"); // Format to 1 decimal place
+                }
+                else
+                {
+                    AverageRating = "N/A"; // No ratings available
+                }
+            }
+            catch (Exception ex)
+            {
+                await Application.Current.MainPage.DisplayAlert("Error", $"Failed to load ratings: {ex.Message}", "OK");
+            }
+        }
         private void ToggleEditMode()
         {
             if (IsReadOnly)
